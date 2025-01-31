@@ -1,4 +1,8 @@
 {
+    "name": "976-tuna/custom-calendar",
+    "description": "Custom 13-month, 28-day calendar package",
+    "type": "library",
+    "license": "MIT",
     "require": {
         "guzzlehttp/guzzle": "^7.9"
     }
