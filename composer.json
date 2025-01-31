@@ -3,6 +3,27 @@
     "description": "Custom 13-month, 28-day calendar package",
     "type": "library",
     "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Tuna976\\CustomCalendar\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Sanaullah Kiani",
+            "email": "kianisanaullah@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tuna976\\CustomCalendar\\CustomCalendarServiceProvider"
+            ],
+            "aliases": {
+                "CustomCalendar": "Tuna976\\CustomCalendar\\Facades\\CustomCalendar"
+            }
+        }
+    },
     "require": {
         "php": "^8.1",
         "laravel/framework": "^11.0",
