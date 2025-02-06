@@ -9,17 +9,17 @@ class CustomCalendarServiceProvider extends ServiceProvider
     public function boot()
     {
         // ✅ Load Views (Ensure directory path is correct)
-        $this->loadViewsFrom(__DIR__.'/../Resources/views', 'customcalendar');
+        $this->loadViewsFrom(__DIR__.'/Resources/views', 'customcalendar');
 
         // ✅ Load Routes (Remove runningInConsole check)
         if (! $this->app->routesAreCached()) {
-            $this->loadRoutesFrom(__DIR__.'/../Routes/web.php');
+            $this->loadRoutesFrom(__DIR__.'/Routes/web.php');
         }
 
         // ✅ Publish Config (Ensure correct path)
-//        $this->publishes([
-//            __DIR__.'/../Config/customcalendar.php' => config_path('customcalendar.php'),
-//        ], 'config');
+        $this->publishes([
+            __DIR__.'/Config/customcalendar.php' => config_path('customcalendar.php'),
+        ], 'config');
 
         // ✅ Load Controllers (Ensure correct path)
         $this->loadControllers();
@@ -27,8 +27,8 @@ class CustomCalendarServiceProvider extends ServiceProvider
 
     public function register()
     {
-//        // ✅ Merge Config (Ensure correct path)
-//        $this->mergeConfigFrom(__DIR__.'/../Config/customcalendar.php', 'customcalendar');
+        // ✅ Merge Config (Ensure correct path)
+        $this->mergeConfigFrom(__DIR__.'/Config/customcalendar.php', 'customcalendar');
 
         // ✅ Bind Calendar Service
         $this->app->singleton('CustomCalendar', function ($app) {
@@ -41,6 +41,6 @@ class CustomCalendarServiceProvider extends ServiceProvider
      */
     protected function loadControllers()
     {
-        $this->loadRoutesFrom(__DIR__.'/../Routes/web.php'); // Ensure that routes use the controller path
+        $this->loadRoutesFrom(__DIR__.'/Routes/web.php'); // Ensure that routes use the controller path
     }
 }
