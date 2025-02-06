@@ -29,7 +29,7 @@ class CustomCalendarServiceProvider extends ServiceProvider
     {
         // ✅ Merge Config (Ensure correct path)
         $this->mergeConfigFrom(__DIR__.'/../Config/customcalendar.php', 'customcalendar');
-
+        
         // ✅ Bind Calendar Service
         $this->app->singleton('CustomCalendar', function ($app) {
             return new CustomCalendar();
