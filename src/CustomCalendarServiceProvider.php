@@ -17,9 +17,9 @@ class CustomCalendarServiceProvider extends ServiceProvider
         }
 
         // ✅ Publish Config (Ensure correct path)
-        $this->publishes([
-            __DIR__.'/../Config/customcalendar.php' => config_path('customcalendar.php'),
-        ], 'config');
+//        $this->publishes([
+//            __DIR__.'/../Config/customcalendar.php' => config_path('customcalendar.php'),
+//        ], 'config');
 
         // ✅ Load Controllers (Ensure correct path)
         $this->loadControllers();
@@ -27,9 +27,9 @@ class CustomCalendarServiceProvider extends ServiceProvider
 
     public function register()
     {
-        // ✅ Merge Config (Ensure correct path)
-        $this->mergeConfigFrom(__DIR__.'/../Config/customcalendar.php', 'customcalendar');
-        
+//        // ✅ Merge Config (Ensure correct path)
+//        $this->mergeConfigFrom(__DIR__.'/../Config/customcalendar.php', 'customcalendar');
+
         // ✅ Bind Calendar Service
         $this->app->singleton('CustomCalendar', function ($app) {
             return new CustomCalendar();
