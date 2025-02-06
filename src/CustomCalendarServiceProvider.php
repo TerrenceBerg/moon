@@ -18,7 +18,7 @@ class CustomCalendarServiceProvider extends ServiceProvider
 
         // ✅ Publish Config (Ensure correct path)
         $this->publishes([
-            __DIR__.'/../Config/custom-calendar.php' => config_path('custom-calendar.php'),
+            __DIR__.'/../Config/customcalendar.php' => config_path('customcalendar.php'),
         ], 'config');
 
         // ✅ Load Controllers (Ensure correct path)
