@@ -1,9 +1,6 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
-use Tuna976\CustomCalendar\CustomCalendar;
+use Tuna976\CustomCalendar\Http\Controllers\CalendarController;
 
-Route::get('/moon-calendar', function (CustomCalendar $calendar) {
-    $customCalendar = $calendar->generateCalendar();
-    return view('customcalendar::calendar', ['calendar' => $customCalendar]);
-});
+Route::get('/moon-calendar', [CalendarController::class, 'showCalendar'])->name('moon-calendar');
+?>
