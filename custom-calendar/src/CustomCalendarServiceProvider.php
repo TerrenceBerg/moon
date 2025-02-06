@@ -13,13 +13,16 @@ class CustomCalendarServiceProvider extends ServiceProvider
 
         // ✅ Load Routes (Remove runningInConsole check)
         if (! $this->app->routesAreCached()) {
-            $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+            $this->loadRoutesFrom(__DIR__.'/../Routes/web.php');
         }
 
         // ✅ Publish Config (Ensure correct path)
         $this->publishes([
             __DIR__.'/../Config/customcalendar.php' => config_path('customcalendar.php'),
         ], 'config');
+
+        // ✅ Load Controllers (Ensure correct path)
+        $this->loadControllers();
     }
 
     public function register()
@@ -31,5 +34,13 @@ class CustomCalendarServiceProvider extends ServiceProvider
         $this->app->singleton('CustomCalendar', function ($app) {
             return new CustomCalendar();
         });
+    }
+
+    /**
+     * Load the controllers in the package.
+     */
+    protected function loadControllers()
+    {
+        $this->loadRoutesFrom(__DIR__.'/../Routes/web.php'); // Ensure that routes use the controller path
     }
 }

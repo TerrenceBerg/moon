@@ -10,21 +10,20 @@ class MoonCalendarHelper
     {
         $year = $year ?? Carbon::now()->year;
         $startDate = Carbon::create($year, 7, 26); // 13 Moon Calendar starts on July 26
-
         $moons = [
-            ['name' => 'Magnetic Moon', 'number' => 1, 'offset' => 0],
-            ['name' => 'Lunar Moon', 'number' => 2, 'offset' => 28],
-            ['name' => 'Electric Moon', 'number' => 3, 'offset' => 56],
-            ['name' => 'Self-Existing Moon', 'number' => 4, 'offset' => 84],
-            ['name' => 'Overtone Moon', 'number' => 5, 'offset' => 112],
-            ['name' => 'Rhythmic Moon', 'number' => 6, 'offset' => 140],
-            ['name' => 'Resonant Moon', 'number' => 7, 'offset' => 168],
-            ['name' => 'Galactic Moon', 'number' => 8, 'offset' => 196],
-            ['name' => 'Solar Moon', 'number' => 9, 'offset' => 224],
-            ['name' => 'Planetary Moon', 'number' => 10, 'offset' => 252],
-            ['name' => 'Spectral Moon', 'number' => 11, 'offset' => 280],
-            ['name' => 'Crystal Moon', 'number' => 12, 'offset' => 308],
-            ['name' => 'Cosmic Moon', 'number' => 13, 'offset' => 336],
+            ['name' => 'Magnetic Moon', 'latin' => 'Luna Magnetica', 'number' => 1, 'roman' => 'Unus', 'offset' => 0],
+            ['name' => 'Lunar Moon', 'latin' => 'Luna Lunaris', 'number' => 2, 'roman' => 'Duo', 'offset' => 28],
+            ['name' => 'Electric Moon', 'latin' => 'Luna Electrica', 'number' => 3, 'roman' => 'Tres', 'offset' => 56],
+            ['name' => 'Self-Existing Moon', 'latin' => 'Luna Sui Existentia', 'number' => 4, 'roman' => 'Quattuor', 'offset' => 84],
+            ['name' => 'Overtone Moon', 'latin' => 'Luna Superior', 'number' => 5, 'roman' => 'Quinque', 'offset' => 112],
+            ['name' => 'Rhythmic Moon', 'latin' => 'Luna Rhythmica', 'number' => 6, 'roman' => 'Sex', 'offset' => 140],
+            ['name' => 'Resonant Moon', 'latin' => 'Luna Resonans', 'number' => 7, 'roman' => 'Septem', 'offset' => 168],
+            ['name' => 'Galactic Moon', 'latin' => 'Luna Galactica', 'number' => 8, 'roman' => 'Octo', 'offset' => 196],
+            ['name' => 'Solar Moon', 'latin' => 'Luna Solaris', 'number' => 9, 'roman' => 'Novem', 'offset' => 224],
+            ['name' => 'Planetary Moon', 'latin' => 'Luna Planetaria', 'number' => 10, 'roman' => 'Decem', 'offset' => 252],
+            ['name' => 'Spectral Moon', 'latin' => 'Luna Spectralis', 'number' => 11, 'roman' => 'Undecim', 'offset' => 280],
+            ['name' => 'Crystal Moon', 'latin' => 'Luna Crystallina', 'number' => 12, 'roman' => 'Duodecim', 'offset' => 308],
+            ['name' => 'Cosmic Moon', 'latin' => 'Luna Cosmica', 'number' => 13, 'roman' => 'Tredecim', 'offset' => 336],
         ];
 
         $calendar = [];
@@ -35,7 +34,9 @@ class MoonCalendarHelper
                 $currentDate = $moonStart->copy()->addDays($day - 1);
                 $calendar[] = [
                     'moon' => $moon['name'],
+                    'moon_latin' => $moon['latin'],
                     'moon_number' => $moon['number'],
+                    'moon_roman' => $moon['roman'],
                     'day' => $day,
                     'gregorian' => $currentDate->toDateString(),
                     'hijri' => Hijri::Date('Y-m-d', $currentDate->timestamp),

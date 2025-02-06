@@ -13,27 +13,54 @@ class CustomCalendar
         $this->year = $year ?: Carbon::now()->year;
     }
 
-    public function generate()
+    public function generateCalendar($year = null)
     {
-        $calendar = [];
-        $startDate = Carbon::create($this->year, 7, 26); // Start from July 26
+        $year = $this->year ?? Carbon::now()->year;
+        $startDate = Carbon::create($year, 7, 26);
 
-        for ($month = 1; $month <= 13; $month++) {
-            $calendar[$month] = [];
+        $moons = [
+            ['name' => 'Magnetic Moon', 'latin' => 'Luna Magnetica', 'number' => 1, 'roman' => 'Unus', 'offset' => 0],
+            ['name' => 'Lunar Moon', 'latin' => 'Luna Lunaris', 'number' => 2, 'roman' => 'Duo', 'offset' => 28],
+            ['name' => 'Electric Moon', 'latin' => 'Luna Electrica', 'number' => 3, 'roman' => 'Tres', 'offset' => 56],
+            ['name' => 'Self-Existing Moon', 'latin' => 'Luna Sui Existentia', 'number' => 4, 'roman' => 'Quattuor', 'offset' => 84],
+            ['name' => 'Overtone Moon', 'latin' => 'Luna Superior', 'number' => 5, 'roman' => 'Quinque', 'offset' => 112],
+            ['name' => 'Rhythmic Moon', 'latin' => 'Luna Rhythmica', 'number' => 6, 'roman' => 'Sex', 'offset' => 140],
+            ['name' => 'Resonant Moon', 'latin' => 'Luna Resonans', 'number' => 7, 'roman' => 'Septem', 'offset' => 168],
+            ['name' => 'Galactic Moon', 'latin' => 'Luna Galactica', 'number' => 8, 'roman' => 'Octo', 'offset' => 196],
+            ['name' => 'Solar Moon', 'latin' => 'Luna Solaris', 'number' => 9, 'roman' => 'Novem', 'offset' => 224],
+            ['name' => 'Planetary Moon', 'latin' => 'Luna Planetaria', 'number' => 10, 'roman' => 'Decem', 'offset' => 252],
+            ['name' => 'Spectral Moon', 'latin' => 'Luna Spectralis', 'number' => 11, 'roman' => 'Undecim', 'offset' => 280],
+            ['name' => 'Crystal Moon', 'latin' => 'Luna Crystallina', 'number' => 12, 'roman' => 'Duodecim', 'offset' => 308],
+            ['name' => 'Cosmic Moon', 'latin' => 'Luna Cosmica', 'number' => 13, 'roman' => 'Tredecim', 'offset' => 336],
+        ];
 
-            for ($day = 1; $day <= 28; $day++) {
-                $currentDate = $startDate->copy()->addDays(($month - 1) * 28 + ($day - 1));
-                $gregorian = $currentDate->format('Y-m-d');
 
-                $calendar[$month][$day] = [
-                    'gregorian' => $gregorian,
-                    'month' => $month,
-                    'day' => $day,
-                    'is_today' => $currentDate->isToday()
-                ];
-            }
+        $months = [];
+        foreach ($moons as $moon) {
+            $monthStart = $startDate->copy()->addDays($moon['offset']);
+            $months[] = [
+                'name' => $moon['name'].' - '.$moon['roman'],
+                'start_date' => $monthStart->toDateString(),
+                'end_date' => $monthStart->copy()->addDays(27)->toDateString(),
+            ];
         }
 
-        return $calendar;
+        $solunarData = [];
+        $tideData = [];
+        $moonPhases = [];
+        foreach ($months as $month) {
+            $solunarData[$month['name']] = ['best_fishing_time' => '06:30 AM - 08:30 AM'];
+            $tideData[$month['name']] = ['high_tide' => '02:45 PM', 'low_tide' => '08:15 AM'];
+            $moonPhases[$month['name']] = ['new_moon' => '2025-01-10', 'full_moon' => '2025-01-24'];
+        }
+
+        return [
+            $year => [
+                'months' => $months,
+                'solunar' => $solunarData,
+                'tides' => $tideData,
+                'moon_phases' => $moonPhases,
+            ],
+        ];
     }
 }
