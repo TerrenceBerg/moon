@@ -3,65 +3,37 @@
 namespace Tuna976\CustomCalendar;
 
 use Carbon\Carbon;
-use GuzzleHttp\Client;
 
 class CustomCalendar
 {
-    protected $client;
+    protected $year;
 
-    public function __construct()
+    public function __construct($year = null)
     {
-        $this->client = new Client();  // Use Guzzle Client
+        $this->year = $year ?: Carbon::now()->year;
     }
 
-    // Custom Calendar Logic - 13 months, 28 days
-    public function generateCustomCalendar($year = null)
+    public function generate()
     {
-        $year = $year ?: Carbon::now()->year;
         $calendar = [];
+        $startDate = Carbon::create($this->year, 7, 26); // Start from July 26
 
-        // Generate 13 months, 28 days each, with 1 rest day
         for ($month = 1; $month <= 13; $month++) {
-            $calendar[$month] = [
-                'month' => $month,
-                'days' => $this->generateMonthDays($month)
-            ];
-        }
+            $calendar[$month] = [];
 
-        // Add the rest day after the 13th month
-        $calendar['rest_day'] = 'Rest Day (365th Day of Year)';
+            for ($day = 1; $day <= 28; $day++) {
+                $currentDate = $startDate->copy()->addDays(($month - 1) * 28 + ($day - 1));
+                $gregorian = $currentDate->format('Y-m-d');
+
+                $calendar[$month][$day] = [
+                    'gregorian' => $gregorian,
+                    'month' => $month,
+                    'day' => $day,
+                    'is_today' => $currentDate->isToday()
+                ];
+            }
+        }
 
         return $calendar;
-    }
-
-    // Generate days for each month
-    private function generateMonthDays($month)
-    {
-        $days = [];
-        for ($day = 1; $day <= 28; $day++) {
-            $days[] = $this->generateDate($month, $day);
-        }
-        return $days;
-    }
-
-    // Format the date
-    private function generateDate($month, $day)
-    {
-        $year = Carbon::now()->year;
-        return Carbon::createFromDate($year, $month, $day)->format('Y-m-d');
-    }
-
-    // NOAA Tides API Integration
-    public function getTides($stationId)
-    {
-        $response = $this->client->get("https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/{$stationId}/tidepredictions.json");
-        return json_decode($response->getBody()->getContents(), true);
-    }
-
-    // Get Moon Phase API Integration
-    public function getMoonPhase($date)
-    {
-        $response = $this->client->get("https://api.solunar.org/solunar/40.7128,-74.0060,{$date},-5");
-        return json_decode($response->getBody()->getContents(), true);
     }
 }

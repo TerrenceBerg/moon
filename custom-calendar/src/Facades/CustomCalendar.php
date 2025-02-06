@@ -8,6 +8,6 @@ class CustomCalendar extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return 'custom-calendar';
+        return 'CustomCalendar';
     }
 }

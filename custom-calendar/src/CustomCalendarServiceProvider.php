@@ -6,26 +6,30 @@ use Illuminate\Support\ServiceProvider;
 
 class CustomCalendarServiceProvider extends ServiceProvider
 {
-    public function register()
-    {
-        $this->app->singleton('custom-calendar', function () {
-            return new CustomCalendar();
-        });
-    }
-
     public function boot()
     {
-        // Publish config
+        // Load Views
+        $this->loadViewsFrom(__DIR__.'/Views', 'customcalendar');
+
+        // Publish Config
         $this->publishes([
-            __DIR__.'/Config/customcalendar.php' => config_path('customcalendar.php'),
+            __DIR__.'/config/customcalendar.php' => config_path('customcalendar.php'),
         ], 'config');
 
-        // Load routes (if any)
-        if (file_exists(__DIR__.'/Routes/web.php')) {
-            $this->loadRoutesFrom(__DIR__.'/Routes/web.php');
+        // Load Routes
+        if ($this->app->runningInConsole()) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         }
+    }
 
-        // Load views (optional for frontend)
-        $this->loadViewsFrom(__DIR__.'/Resources/views', 'customcalendar');
+    public function register()
+    {
+        // Merge Config
+        $this->mergeConfigFrom(__DIR__.'/config/customcalendar.php', 'customcalendar');
+
+        // Bind Calendar Service
+        $this->app->singleton('CustomCalendar', function ($app) {
+            return new CustomCalendar();
+        });
     }
 }
