@@ -19,6 +19,7 @@ class CalendarController extends Controller
     {
         $currentYear = now()->year;
         $calendarData = $this->calendarService->generateCalendar($currentYear);
+        dd($calendarData);
 
         return view('customcalendar::calendar', compact('calendarData'));
     }
