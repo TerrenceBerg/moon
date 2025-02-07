@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Continuous Calendar</title>
+    <title>Continuous Calendar with Gregorian Dates</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         body {
@@ -28,7 +28,7 @@
         }
 
         .month-container {
-            width: 100%; /* Takes up 48% of the row, leaving a small gap */
+            width: 100%;
             background: white;
             padding: 15px;
             border-radius: 8px;
@@ -43,6 +43,8 @@
             text-align: center;
             border-radius: 5px;
             margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
         }
 
         .calendar-grid {
@@ -100,16 +102,24 @@
             color: #fff;
         }
 
+        .gregorian-date {
+            font-size: 12px;
+            color: #555;
+            display: block;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
         /* Responsive Layout */
         @media (max-width: 1024px) {
             .month-container {
-                width: 100%; /* Display 2 months in one row */
+                width: 100%;
             }
         }
 
         @media (max-width: 768px) {
             .month-container {
-                width: 100%; /* Display 1 month per row on mobile */
+                width: 100%;
             }
         }
     </style>
@@ -118,7 +128,7 @@
 
 <div class="container-fluid">
     <div class="calendar-container">
-        <h1 class="text-center text-primary">13-Month Calendar</h1>
+        <h1 class="text-center text-primary">13-Month Calendar with Gregorian Dates</h1>
 
         <div class="months-row">
             @foreach ($calendarData as $year => $data)
@@ -150,11 +160,13 @@
                             <!-- Actual dates with events -->
                             @for ($i = 0; $i < $daysInMonth; $i++)
                                 @php
-                                    $currentDate = $startDate->copy()->addDays($i)->toDateString();
-                                    $dayNumber = $startDate->copy()->addDays($i)->format('d');
+                                    $currentDate = $startDate->copy()->addDays($i);
+                                    $dayNumber = $currentDate->format('d');
+                                    $gregorianDate = $currentDate->format('d-m-Y'); // Format Gregorian Date
                                 @endphp
                                 <div class="calendar-day">
-                                    <strong>{{ $dayNumber }}</strong>
+{{--                                    <strong>{{ $dayNumber }}</strong>--}}
+                                    <span class="gregorian-date">{{ $gregorianDate }}</span> <!-- Show Gregorian Date -->
 
                                     @if(isset($data['solunar'][$month['name']]))
                                         <div class="event solunar">

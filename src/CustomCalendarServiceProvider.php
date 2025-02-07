@@ -3,6 +3,8 @@
 namespace Tuna976\CustomCalendar;
 
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
+use Tuna976\CustomCalendar\Http\Livewire\Calendar;
 
 class CustomCalendarServiceProvider extends ServiceProvider
 {
@@ -10,6 +12,12 @@ class CustomCalendarServiceProvider extends ServiceProvider
     {
         // ✅ Load Views (Ensure directory path is correct)
         $this->loadViewsFrom(__DIR__.'/Resources/views', 'customcalendar');
+
+        // Register Livewire Component
+//        Livewire::component('custom-calendar', Calendar::class);
+        if (class_exists(Livewire::class)) {
+            Livewire::component('custom-calendar', Calendar::class);
+        }
 
         // ✅ Load Routes (Remove runningInConsole check)
         if (! $this->app->routesAreCached()) {

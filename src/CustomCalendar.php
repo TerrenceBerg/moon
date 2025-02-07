@@ -15,8 +15,9 @@ class CustomCalendar
 
     public function generateCalendar($year = null)
     {
-        $year = $this->year ?? Carbon::now()->year;
-        $startDate = Carbon::create($year, 7, 26);
+        $currentYear = $year ?? Carbon::now()->year;
+        $yearRange = range($currentYear - 5, $currentYear + 5); // Previous 5 years + Next 5 years
+        $calendarData = [];
 
         $moons = [
             ['name' => 'Magnetic Moon', 'latin' => 'Luna Magnetica', 'number' => 1, 'roman' => 'Unus', 'offset' => 0],
@@ -34,33 +35,35 @@ class CustomCalendar
             ['name' => 'Cosmic Moon', 'latin' => 'Luna Cosmica', 'number' => 13, 'roman' => 'Tredecim', 'offset' => 336],
         ];
 
+        foreach ($yearRange as $year) {
+            $startDate = Carbon::create($year, 7, 26); // Start of the calendar year
+            $months = [];
 
-        $months = [];
-        foreach ($moons as $moon) {
-            $monthStart = $startDate->copy()->addDays($moon['offset']);
-            $months[] = [
-                'name' => $moon['name'].' - '.$moon['roman'],
-                'start_date' => $monthStart->toDateString(),
-                'end_date' => $monthStart->copy()->addDays(27)->toDateString(),
-            ];
-        }
+            foreach ($moons as $moon) {
+                $monthStart = $startDate->copy()->addDays($moon['offset']);
+                $months[] = [
+                    'name' => $moon['name'].' - '.$moon['roman'],
+                    'start_date' => $monthStart->toDateString(),
+                    'end_date' => $monthStart->copy()->addDays(27)->toDateString(),
+                ];
+            }
 
-        $solunarData = [];
-        $tideData = [];
-        $moonPhases = [];
-        foreach ($months as $month) {
-            $solunarData[$month['name']] = ['best_fishing_time' => '06:30 AM - 08:30 AM'];
-            $tideData[$month['name']] = ['high_tide' => '02:45 PM', 'low_tide' => '08:15 AM'];
-            $moonPhases[$month['name']] = ['new_moon' => '2025-01-10', 'full_moon' => '2025-01-24'];
-        }
+            $solunarData = [];
+            $tideData = [];
+            $moonPhases = [];
+            foreach ($months as $month) {
+                $solunarData[$month['name']] = ['best_fishing_time' => '06:30 AM - 08:30 AM'];
+                $tideData[$month['name']] = ['high_tide' => '02:45 PM', 'low_tide' => '08:15 AM'];
+                $moonPhases[$month['name']] = ['new_moon' => "{$year}-01-10", 'full_moon' => "{$year}-01-24"];
+            }
 
-        return [
-            $year => [
+            $calendarData[$year] = [
                 'months' => $months,
                 'solunar' => $solunarData,
                 'tides' => $tideData,
                 'moon_phases' => $moonPhases,
-            ],
-        ];
-    }
-}
+            ];
+        }
+
+        return $calendarData;
+    }}
