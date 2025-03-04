@@ -10,7 +10,6 @@
             background-color: #f8f9fa;
             font-family: Arial, sans-serif;
         }
-
         .calendar-container {
             max-width: 100%;
             margin: 20px auto;
@@ -19,34 +18,6 @@
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
-
-        .months-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        .month-container {
-            width: 100%;
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .month-title {
-            background-color: #007bff;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -55,7 +26,6 @@
             padding: 10px;
             border-radius: 10px;
         }
-
         .calendar-day {
             background: white;
             padding: 10px;
@@ -66,11 +36,9 @@
             border: 1px solid #dee2e6;
             position: relative;
         }
-
         .calendar-day:hover {
             background: #f8f9fa;
         }
-
         .day-header {
             font-weight: bold;
             text-align: center;
@@ -79,48 +47,30 @@
             padding: 6px;
             border-radius: 5px;
         }
-
         .event {
             font-size: 12px;
             margin-top: 5px;
             padding: 3px;
             border-radius: 5px;
         }
-
         .solunar {
             background: #ffeb3b;
             color: #000;
         }
-
         .tide {
             background: #17a2b8;
             color: #fff;
         }
-
         .moon {
             background: #6f42c1;
             color: #fff;
         }
-
         .gregorian-date {
             font-size: 12px;
             color: #555;
             display: block;
             margin-top: 5px;
             font-weight: bold;
-        }
-
-        /* Responsive Layout */
-        @media (max-width: 1024px) {
-            .month-container {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .month-container {
-                width: 100%;
-            }
         }
     </style>
 </head>
@@ -130,70 +80,85 @@
     <div class="calendar-container">
         <h1 class="text-center text-primary">13-Month Calendar with Gregorian Dates</h1>
 
-        <div class="months-row">
+        <div class="accordion" id="yearAccordion">
+            @php
+                $currentYear = now()->year;
+            @endphp
+
             @foreach ($calendarData as $year => $data)
-                @foreach ($data['months'] as $month)
-                    @php
-                        $startDate = \Carbon\Carbon::parse($month['start_date']);
-                        $endDate = \Carbon\Carbon::parse($month['end_date']);
-                        $daysInMonth = $startDate->diffInDays($endDate) + 1;
-                        $startDayOfWeek = $startDate->dayOfWeek;
-                    @endphp
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading-{{ $year }}">
+                        <button class="accordion-button {{ $year == $currentYear ? '' : 'collapsed' }}"
+                                type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapse-{{ $year }}"
+                                aria-expanded="{{ $year == $currentYear ? 'true' : 'false' }}"
+                                aria-controls="collapse-{{ $year }}">
+                            Year {{ $year }}
+                        </button>
+                    </h2>
 
-                    <div class="month-container">
-                        <div class="month-title">{{ $month['name'] }} ({{ $year }})</div>
-                        <div class="calendar-grid">
-                            <!-- Day headers -->
-                            <div class="day-header">Sun</div>
-                            <div class="day-header">Mon</div>
-                            <div class="day-header">Tue</div>
-                            <div class="day-header">Wed</div>
-                            <div class="day-header">Thu</div>
-                            <div class="day-header">Fri</div>
-                            <div class="day-header">Sat</div>
+                    <div id="collapse-{{ $year }}" class="accordion-collapse collapse {{ $year == $currentYear ? 'show' : '' }}"
+                         aria-labelledby="heading-{{ $year }}"
+                         data-bs-parent="#yearAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                @foreach ($data['months'] as $month)
+                                    @php
+                                        $startDate = \Carbon\Carbon::parse($month['start_date']);
+                                        $endDate = \Carbon\Carbon::parse($month['end_date']);
+                                        $daysInMonth = $startDate->diffInDays($endDate) + 1;
+                                        $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                        $startDayOfWeek = $startDate->dayOfWeek;
+                                    @endphp
 
-                            <!-- Empty cells for the first week -->
-                            @for ($i = 0; $i < $startDayOfWeek; $i++)
-                                <div class="calendar-day"></div>
-                            @endfor
+                                    <div class="col-md-6">
+                                        <div class="mb-4 p-3 border rounded bg-white shadow-sm">
+                                            <h5 class="text-center bg-primary text-white p-2 rounded">{{ $month['name'] }} ({{ $year }})</h5>
+                                            <div class="calendar-grid">
+{{--                                                @foreach ($dayNames as $day)--}}
+{{--                                                    <div class="day-header">{{ $day }}</div>--}}
+{{--                                                @endforeach--}}
 
-                            <!-- Actual dates with events -->
-                            @for ($i = 0; $i < $daysInMonth; $i++)
-                                @php
-                                    $currentDate = $startDate->copy()->addDays($i);
-                                    $dayNumber = $currentDate->format('d');
-                                    $gregorianDate = $currentDate->format('d-m-Y'); // Format Gregorian Date
-                                @endphp
-                                <div class="calendar-day">
-{{--                                    <strong>{{ $dayNumber }}</strong>--}}
-                                    <span class="gregorian-date">{{ $gregorianDate }}</span> <!-- Show Gregorian Date -->
+                                                @foreach($month['days'] as $day)
 
-                                    @if(isset($data['solunar'][$month['name']]))
-                                        <div class="event solunar">
-                                            🎣 {{ $data['solunar'][$month['name']]['best_fishing_time'] }}
+
+                                                    <div class="calendar-day">
+                                                        <span class="day-header">{{ $day['day_of_week'] }}</span>
+                                                        <span class="gregorian-date">{{ $day['gregorian_date'] }}</span>
+                                                        <span class="gregorian-date">{{ $day['julian_day'] }}</span>
+{{--                                                        <span class="gregorian-date">{{ $day['moon_phase'] }}</span>--}}
+
+{{--                                                        @if(isset($data['solunar'][$monthName]))--}}
+{{--                                                            <div class="event solunar">--}}
+{{--                                                                🎣 {{ $data['solunar'][$monthName]['best_fishing_time'] }}--}}
+{{--                                                            </div>--}}
+{{--                                                        @endif--}}
+
+{{--                                                        @if(isset($data['tides'][$monthName]))--}}
+{{--                                                            <div class="event tide">--}}
+{{--                                                                🌊 HT: {{ $data['tides'][$monthName]['high_tide'] }}<br>--}}
+{{--                                                                🌊 LT: {{ $data['tides'][$monthName]['low_tide'] }}--}}
+{{--                                                            </div>--}}
+{{--                                                        @endif--}}
+
+                                                        @if(isset($day['moon_phase']))
+                                                            <div class="event moon">
+                                                                {{$day['moon_phase']}}
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                    @endforeach
+                                            </div>
                                         </div>
-                                    @endif
-
-                                    @if(isset($data['tides'][$month['name']]))
-                                        <div class="event tide">
-                                            🌊 HT: {{ $data['tides'][$month['name']]['high_tide'] }}<br>
-                                            🌊 LT: {{ $data['tides'][$month['name']]['low_tide'] }}
-                                        </div>
-                                    @endif
-
-                                    @if(isset($data['moon_phases'][$month['name']]))
-                                        <div class="event moon">
-                                            🌑 {{ $data['moon_phases'][$month['name']]['new_moon'] }}<br>
-                                            🌕 {{ $data['moon_phases'][$month['name']]['full_moon'] }}
-                                        </div>
-                                    @endif
-                                </div>
-                            @endfor
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
-                @endforeach
+                </div>
             @endforeach
         </div>
+
     </div>
 </div>
 

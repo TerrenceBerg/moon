@@ -8,13 +8,32 @@ use Carbon\Carbon;
 class Calendar extends Component
 {
     public Carbon $currentDate;
+    public $daysSinceLunarStart;
     public string $viewMode = 'month'; // Default view mode
     protected array $moons = [];
+
 
     public function mount()
     {
         $this->currentDate = Carbon::now();
         $this->moons = $this->defineMoons();
+        $this->calculateLunarDate();
+    }
+    public function calculateLunarDate()
+    {
+        // Define lunar year start (adjust if needed)
+        $lunarYearStart = Carbon::create($this->currentDate->year, 7, 26);
+
+        // Calculate the total days from the lunar start to the current date
+        $this->daysSinceLunarStart = $lunarYearStart->diffInDays($this->currentDate);
+
+        // Ensure days don't go negative (for dates before July 26)
+        if ($this->daysSinceLunarStart < 0) {
+            $this->daysSinceLunarStart = 0;
+        }
+
+        // Each moon lasts exactly 28 days
+        $this->currentLunarDay = ($this->daysSinceLunarStart % 28) + 1;
     }
 
     public function next()
@@ -43,6 +62,9 @@ class Calendar extends Component
     public function render()
     {
         return view('customcalendar::livewire.calendar', [
+            'currentLunarMonth' => $this->getCurrentLunarMonth(),
+            'currentLunarDay' => $this->getCurrentLunarDay(),
+            'currentDate' => $this->currentDate,
             'daysInMonth' => $this->generateMonthView(),
             'monthsInYear' => $this->generateYearView(),
             'lunarMonthNames' => $this->getLunarMonthNames(),
@@ -142,5 +164,35 @@ class Calendar extends Component
     private function getLunarMonthNames(): array
     {
         return array_column($this->moons, 'name', 'number');
+    }
+
+    public function getCurrentLunarMonth()
+    {
+        $this->moons = $this->defineMoons();
+        $startOfYear = Carbon::create($this->currentDate->year, 7, 26);
+
+        foreach ($this->moons as $moon) {
+            $moonStart = $startOfYear->copy()->addDays($moon['offset']);
+            $moonEnd = $moonStart->copy()->addDays(27); // Each moon lasts 28 days
+
+            if ($this->currentDate->between($moonStart, $moonEnd)) {
+                return $moon['number']; // Return the moon number
+            }
+        }
+
+        return 1; // Default to the first moon if not found
+    }
+    public function getCurrentLunarDay()
+    {
+        // Define lunar year start date (adjust if needed)
+        $lunarYearStart = Carbon::create($this->currentDate->year, 7, 26);
+
+        // Calculate the total days from the lunar start to the current date
+        $daysSinceLunarStart = $lunarYearStart->diffInDays($this->currentDate);
+
+        // Each moon lasts exactly 28 days
+        $lunarDay = ($daysSinceLunarStart % 28) + 1;
+
+        return $lunarDay;
     }
 }

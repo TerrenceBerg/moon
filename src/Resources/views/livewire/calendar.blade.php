@@ -54,8 +54,9 @@
     @if ($viewMode === 'day')
         <h4>Day View: {{ $lunarMonthNames[$currentLunarMonth] ?? 'Unknown Moon' }}</h4>
         <div class="border text-center p-3 m-1">
-            <strong>{{ $currentDate->format('j') }}</strong><br>
-            <small>{{ $currentDate->format('l, M j Y') }}</small>
+            <strong>Moon Day: {{ $currentLunarDay }}</strong><br>
+            <small>{{ $currentDate->format('l, M j Y') }}</small><br>
+            <small>Days Since Lunar Start: {{ $daysSinceLunarStart }}</small>
         </div>
     @endif
 </div>
