@@ -1,7 +1,10 @@
 <?php
+
 namespace Tuna976\CustomCalendar;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Tuna976\CustomCalendar\Models\SolarEvent;
 
 class CustomCalendar
 {
@@ -16,8 +19,11 @@ class CustomCalendar
     {
         ini_set('memory_limit', '512M');
         $currentYear = $year ?? Carbon::now()->year;
-        $yearRange = range($currentYear, $currentYear + 5);
+        $yearRange = range($currentYear - 5, $currentYear + 5);
         $calendarData = [];
+
+        // Fetch solar events for all required years
+        $solarEvents = SolarEvent::whereIn('year', $yearRange)->get()->keyBy('year');
 
         $moons = [
             ['name' => 'Magnetic Moon', 'latin' => 'Luna Magnetica', 'roman' => 'Unus', 'offset' => 0],
@@ -36,7 +42,11 @@ class CustomCalendar
         ];
 
         foreach ($yearRange as $year) {
-            $vernalEquinox = Carbon::create($year, 3, ($year % 4 === 0 ? 21 : 20));
+            if (!isset($solarEvents[$year])) {
+                continue; // Skip years without solar event data
+            }
+
+            $vernalEquinox = Carbon::parse($solarEvents[$year]->march_equinox);
             $months = [];
 
             foreach ($moons as $moon) {
@@ -55,7 +65,7 @@ class CustomCalendar
                 }
 
                 $months[] = [
-                    'name' => $moon['name'] . ' - ' . $moon['roman'],
+                    'name' => "{$moon['name']} - {$moon['roman']} ({$moon['latin']})",
                     'start_date' => $monthStart->toDateString(),
                     'end_date' => $monthStart->copy()->addDays(27)->toDateString(),
                     'start_day_of_week' => $monthStart->format('l'),
@@ -63,7 +73,16 @@ class CustomCalendar
                 ];
             }
 
-            $calendarData[$year] = ['months' => $months];
+            // Assign solar events at the **year level**
+            $calendarData[$year] = [
+                'solar_events' => [
+                    'march_equinox' => Carbon::parse($solarEvents[$year]->march_equinox)->format('d-m-Y H:i:s'),
+                    'june_solstice' => Carbon::parse($solarEvents[$year]->june_solstice)->format('d-m-Y H:i:s'),
+                    'september_equinox' => Carbon::parse($solarEvents[$year]->september_equinox)->format('d-m-Y H:i:s'),
+                    'december_solstice' => Carbon::parse($solarEvents[$year]->december_solstice)->format('d-m-Y H:i:s'),
+                ],
+                'months' => $months,
+            ];
         }
 
         return $calendarData;
@@ -71,11 +90,12 @@ class CustomCalendar
 
     private function getMoonPhase($date)
     {
-        $baseDate = Carbon::create(2000, 1, 6);
+        $baseDate = Carbon::create(2000, 1, 6, 18, 14, 0);
         $daysSinceBase = $date->diffInDays($baseDate);
         $synodicMonth = 29.53058867;
 
-        $phaseIndex = round(fmod($daysSinceBase / $synodicMonth, 1) * 8) % 8;
+        $moonAge = fmod($daysSinceBase, $synodicMonth);
+        $phaseIndex = floor(($moonAge / $synodicMonth) * 8) % 8;
 
         $moonPhases = [
             0 => 'New Moon 🌑',

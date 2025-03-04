@@ -4,6 +4,7 @@ namespace Tuna976\CustomCalendar;
 
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Tuna976\CustomCalendar\Commands\ImportDataCommand;
 use Tuna976\CustomCalendar\Http\Livewire\Calendar;
 
 class CustomCalendarServiceProvider extends ServiceProvider
@@ -31,6 +32,9 @@ class CustomCalendarServiceProvider extends ServiceProvider
 
         // ✅ Load Controllers (Ensure correct path)
         $this->loadControllers();
+
+        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
+        $this->commands([ImportDataCommand::class]);
     }
 
     public function register()
