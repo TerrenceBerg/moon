@@ -81,6 +81,7 @@ class CustomCalendar
                     'september_equinox' => Carbon::parse($solarEvents[$year]->september_equinox)->format('d-m-Y H:i:s'),
                     'december_solstice' => Carbon::parse($solarEvents[$year]->december_solstice)->format('d-m-Y H:i:s'),
                 ],
+                'is_leap_year'=>($year % 4 == 0 && $year % 100 != 0) || ($year % 400 == 0),
                 'months' => $months,
             ];
         }
