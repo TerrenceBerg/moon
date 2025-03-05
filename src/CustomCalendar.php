@@ -65,7 +65,7 @@ class CustomCalendar
                 }
 
                 $months[] = [
-                    'name' => "{$moon['name']} - {$moon['roman']} ({$moon['latin']})",
+                    'name' => "{$moon['name']}",
                     'start_date' => $monthStart->toDateString(),
                     'end_date' => $monthStart->copy()->addDays(27)->toDateString(),
                     'start_day_of_week' => $monthStart->format('l'),
