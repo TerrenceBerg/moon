@@ -21,49 +21,22 @@
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .calendar-month {
-            width: 100%;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
+            gap: 3px;
             background: #e9ecef;
             padding: 10px;
             border-radius: 10px;
-            overflow-x: auto;
         }
 
         .calendar-day {
             background: white;
-            padding: 10px;
+            padding: 8px;
             border-radius: 5px;
             text-align: center;
-            font-size: 14px;
-            border: 1px solid #dee2e6;
-        }
-
-        .day-header {
-            font-weight: bold;
-            text-align: center;
-            background: #343a40;
-            color: white;
-            padding: 6px;
-            border-radius: 5px;
-        }
-
-        .date-info {
             font-size: 12px;
-            color: #555;
-            display: block;
-            margin-top: 5px;
-            font-weight: bold;
+            border: 1px solid #dee2e6;
         }
 
         .green-day {
@@ -71,12 +44,58 @@
             color: white;
             font-weight: bold;
         }
+
+        .day-header {
+            font-weight: bold;
+            text-align: center;
+            background: #343a40;
+            color: white;
+            padding: 5px;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+
+        .date-info {
+            font-size: 10px;
+            color: #555;
+            display: block;
+            margin-top: 2px;
+            font-weight: bold;
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: repeat(7, minmax(25px, 1fr));
+                font-size: 10px;
+                padding: 5px;
+            }
+
+            .calendar-day {
+                padding: 6px;
+                font-size: 10px;
+            }
+
+            .nav-buttons {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 5px;
+            }
+
+            .btn-sm {
+                padding: 5px 10px;
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
+
 <div class="container">
     <div class="calendar-container">
         <h1 class="text-center text-primary">13-Month Calendar</h1>
+
+        <!-- Accordion (Now Visible on All Devices) -->
         <div class="accordion" id="yearAccordion">
             @php
                 $currentYear = now()->year;
@@ -128,38 +147,36 @@
                                     </div>
                                 </div>
                             @endif
-                            <div class="row">
-                                @foreach ($data['months'] as $month)
-                                    <div class="calendar-month col-12">
-                                        <h5 class="text-center bg-primary text-white p-2 rounded">{{ $month['name'] }}</h5>
-                                        <div class="calendar-grid">
-                                            <div class="day-header">Sun</div>
-                                            <div class="day-header">Mon</div>
-                                            <div class="day-header">Tue</div>
-                                            <div class="day-header">Wed</div>
-                                            <div class="day-header">Thu</div>
-                                            <div class="day-header">Fri</div>
-                                            <div class="day-header">Sat</div>
-                                            @foreach($month['days'] as $i => $day)
-                                                <div class="calendar-day">
-                                                    <span class="gregorian-date"> {{ $i+1 }}</span>
-                                                    <span class="date-info">{{ $day['gregorian_date'] }}</span>
-                                                    <span class="date-info">{{ $day['julian_day'] }}</span>
-                                                    <span class="date-info">{{ $day['moon_phase'] }}</span>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endforeach
 
+                            @foreach ($data['months'] as $month)
+                                <div class="calendar-month">
+                                    <h5 class="text-center bg-primary text-white p-2 rounded">{{ $month['name'] }}</h5>
+                                    <div class="calendar-grid">
+                                        <div class="day-header">Sun</div>
+                                        <div class="day-header">Mon</div>
+                                        <div class="day-header">Tue</div>
+                                        <div class="day-header">Wed</div>
+                                        <div class="day-header">Thu</div>
+                                        <div class="day-header">Fri</div>
+                                        <div class="day-header">Sat</div>
+                                        @foreach($month['days'] as $i => $day)
+                                            <div class="calendar-day">
+                                                <span class="gregorian-date">{{ $i+1 }}</span>
+                                                <span class="date-info">{{ $day['gregorian_date'] }}</span>
+                                                <span class="date-info">{{ $day['julian_day'] }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
                                 @php
                                     $totalDays = array_sum(array_map(fn($m) => count($m['days']), $data['months']));
                                     $extraDays = ($data['is_leap_year'] ? 366 : 365) - $totalDays;
                                 @endphp
 
                                 @if ($extraDays > 0)
-                                    <div class="calendar-month col-12">
-                                        <h5 class="text-center bg-success text-white p-2 rounded">Extra Days</h5>
+                                    <div class="calendar-month">
+                                        <h5 class="text-center bg-success text-white p-2 rounded">Green Days</h5>
                                         <div class="calendar-grid">
                                             @for ($i = 1; $i <= $extraDays; $i++)
                                                 <div class="calendar-day green-day">
@@ -171,14 +188,18 @@
                                     </div>
                                 @endif
 
-                            </div>
                         </div>
                     </div>
                 </div>
             @endforeach
         </div>
+
+
     </div>
 </div>
+
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
