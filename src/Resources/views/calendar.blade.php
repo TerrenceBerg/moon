@@ -118,7 +118,7 @@
                                 <div class="solar-events">
                                     <h6 class="text-center">Solar Events for {{ $year }}</h6>
                                     <div class="table-responsive">
-                                        <table class="table table-sm table-bordered table-striped">
+                                        <table class="table table-sm table-bordered ">
                                             <thead class="table-dark text-center">
                                             <tr>
                                                 <th>Event</th>
@@ -162,12 +162,13 @@
 
 
                                         @foreach($month['days'] as $i => $day)
-                                            <div class="calendar-day" id="day-{{ $day['date'] }}" data-date="{{ $day['date'] }}">
+                                            <div class="calendar-day" id="day-{{ $day['date'] }}"
+                                                 data-date="{{ $day['date'] }}">
                                                 <span class="gregorian-date">{{ $day['gregorian_date'] }}</span>
                                                 <span class="date-info">{{ $day['julian_day'] }}</span>
                                                 <span class="date-info">{{ $day['moon_phase'] }}</span>
                                                 @php
-                                                    $tide = \Tuna976\CustomCalendar\Models\TideData::where('date', $day['date'])->first();
+                                                    $tide = \Tuna976\CustomCalendar\Models\NOAATideForecast::where('date', $day['date'])->first();
                                                 @endphp
                                                 @if ($tide)
                                                     <span class="date-info">🌊 High: {{ $tide->high_tide_time }} ({{ $tide->high_tide_level }}m)</span>
