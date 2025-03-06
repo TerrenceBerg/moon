@@ -133,7 +133,6 @@ class FetchNOAADataCommand extends Command
 
     private function storeSunriseSunsetData($data)
     {
-        dd($data);
         foreach ($data as $record) {
             $date = Carbon::parse($record['t'])->toDateString();
             NOAATideForecast::updateOrCreate(
