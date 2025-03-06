@@ -118,7 +118,7 @@
                                 <div class="solar-events">
                                     <h6 class="text-center">Solar Events for {{ $year }}</h6>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-striped">
+                                        <table class="table table-sm table-bordered table-striped">
                                             <thead class="table-dark text-center">
                                             <tr>
                                                 <th>Event</th>
@@ -159,34 +159,45 @@
                                         <div class="day-header">Thu</div>
                                         <div class="day-header">Fri</div>
                                         <div class="day-header">Sat</div>
+
+
                                         @foreach($month['days'] as $i => $day)
-                                            <div class="calendar-day">
-                                                <span class="gregorian-date">{{ $i+1 }}</span>
-                                                <span class="date-info">{{ $day['gregorian_date'] }}</span>
+                                            <div class="calendar-day" id="day-{{ $day['date'] }}" data-date="{{ $day['date'] }}">
+                                                <span class="gregorian-date">{{ $day['gregorian_date'] }}</span>
                                                 <span class="date-info">{{ $day['julian_day'] }}</span>
+                                                <span class="date-info">{{ $day['moon_phase'] }}</span>
+                                                @php
+                                                    $tide = \Tuna976\CustomCalendar\Models\TideData::where('date', $day['date'])->first();
+                                                @endphp
+                                                @if ($tide)
+                                                    <span class="date-info">🌊 High: {{ $tide->high_tide_time }} ({{ $tide->high_tide_level }}m)</span>
+                                                    <span class="date-info">🌊 Low: {{ $tide->low_tide_time }} ({{ $tide->low_tide_level }}m)</span>
+                                                @else
+                                                    <span class="date-info">Tide data unavailable</span>
+                                                @endif
                                             </div>
                                         @endforeach
                                     </div>
                                 </div>
                             @endforeach
-                                @php
-                                    $totalDays = array_sum(array_map(fn($m) => count($m['days']), $data['months']));
-                                    $extraDays = ($data['is_leap_year'] ? 366 : 365) - $totalDays;
-                                @endphp
+                            @php
+                                $totalDays = array_sum(array_map(fn($m) => count($m['days']), $data['months']));
+                                $extraDays = ($data['is_leap_year'] ? 366 : 365) - $totalDays;
+                            @endphp
 
-                                @if ($extraDays > 0)
-                                    <div class="calendar-month">
-                                        <h5 class="text-center bg-success text-white p-2 rounded">Green Days</h5>
-                                        <div class="calendar-grid">
-                                            @for ($i = 1; $i <= $extraDays; $i++)
-                                                <div class="calendar-day green-day">
-                                                    <span class="gregorian-date">{{ $totalDays + $i }}</span>
-                                                    <span class="date-info">Green Day</span>
-                                                </div>
-                                            @endfor
-                                        </div>
+                            @if ($extraDays > 0)
+                                <div class="calendar-month">
+                                    <h5 class="text-center bg-success text-white p-2 rounded">Green Days</h5>
+                                    <div class="calendar-grid">
+                                        @for ($i = 1; $i <= $extraDays; $i++)
+                                            <div class="calendar-day green-day">
+                                                <span class="gregorian-date">{{ $totalDays + $i }}</span>
+                                                <span class="date-info">Green Day</span>
+                                            </div>
+                                        @endfor
                                     </div>
-                                @endif
+                                </div>
+                            @endif
 
                         </div>
                     </div>
@@ -199,7 +210,7 @@
 </div>
 
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

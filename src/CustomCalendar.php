@@ -17,7 +17,6 @@ class CustomCalendar
 
     public function generateCalendar($year = null)
     {
-        ini_set('memory_limit', '512M');
         $currentYear = $year ?? Carbon::now()->year;
         $yearRange = range($currentYear - 5, $currentYear + 5);
         $calendarData = [];
