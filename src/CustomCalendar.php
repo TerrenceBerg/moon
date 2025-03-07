@@ -3,6 +3,8 @@
 namespace Tuna976\CustomCalendar;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tuna976\CustomCalendar\Models\NOAAStation;
 use Tuna976\CustomCalendar\Models\SolarEvent;
 use Tuna976\CustomCalendar\Models\NOAATideForecast;
@@ -72,6 +74,7 @@ class CustomCalendar
                         'julian_day' => $dayDate->dayOfYear,
                         'gregorian_date' => $dayDate->format('d-m-Y'),
                         'moon_phase' => $this->getMoonPhase($dayDate),
+//                        'sun_data' => $this->getSunriseSunset($station->longitue,$station->latitue,$dayDate),
                         'tide_data' => $dayTideData ? [
                             'high_tide_time' => $dayTideData->high_tide_time,
                             'high_tide_level' => $dayTideData->high_tide_level,
@@ -107,14 +110,15 @@ class CustomCalendar
         return $calendarData;
     }
 
+
     private function getMoonPhase($date)
     {
-        $baseDate = Carbon::create(2000, 1, 6, 18, 14, 0);
-        $daysSinceBase = $date->diffInDays($baseDate);
         $synodicMonth = 29.53058867;
+        $knownNewMoon = Carbon::create(2000, 1, 6, 18, 14, 0); // Reference new moon
+        $daysSinceNewMoon = $knownNewMoon->floatDiffInDays($date);
 
-        $moonAge = fmod($daysSinceBase, $synodicMonth);
-        $phaseIndex = floor(($moonAge / $synodicMonth) * 8) % 8;
+        $moonAge = fmod($daysSinceNewMoon, $synodicMonth);
+        $phaseIndex = round(($moonAge / $synodicMonth) * 8) % 8;
 
         $moonPhases = [
             0 => 'New Moon 🌑',
@@ -129,4 +133,34 @@ class CustomCalendar
 
         return $moonPhases[$phaseIndex] ?? null;
     }
+
+//    private function getSunriseSunset($latitude, $longitude, $date)
+//    {
+//        try {
+//            $formattedDate = Carbon::parse($date)->format('Y-m-d');
+//
+//            $response = Http::get("https://api.sunrise-sunset.org/json", [
+//                'lat' => $latitude,
+//                'lng' => $longitude,
+//                'date' => $formattedDate,
+//                'formatted' => 0 // Get times in UTC
+//            ]);
+//
+//            if ($response->successful()) {
+//                $data = $response->json();
+//                $sunrise = Carbon::parse($data['results']['sunrise'])->setTimezone('America/Los_Angeles')->format('H:i');
+//                $sunset = Carbon::parse($data['results']['sunset'])->setTimezone('America/Los_Angeles')->format('H:i');
+//
+//                return [
+//                    'sunrise' => $sunrise,
+//                    'sunset' => $sunset
+//                ];
+//            } else {
+//                return ['sunrise' => 'N/A', 'sunset' => 'N/A'];
+//            }
+//        } catch (\Exception $e) {
+//            \Log::error("Error fetching sunrise/sunset: " . $e->getMessage());
+//            return ['sunrise' => 'N/A', 'sunset' => 'N/A'];
+//        }
+//    }
 }
