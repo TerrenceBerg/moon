@@ -3,26 +3,36 @@
 namespace Tuna976\CustomCalendar;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use Tuna976\CustomCalendar\Models\NOAAStation;
 use Tuna976\CustomCalendar\Models\SolarEvent;
+use Tuna976\CustomCalendar\Models\NOAATideForecast;
 
 class CustomCalendar
 {
     protected $year;
+    protected $stationId;
 
-    public function __construct($year = null)
+    public function __construct($year = null, $stationId = null)
     {
         $this->year = $year ?: Carbon::now()->year;
+        $this->stationId = $stationId;
     }
 
-    public function generateCalendar($year = null)
+    public function generateCalendar($year = null, $stationId = null)
     {
         $currentYear = $year ?? Carbon::now()->year;
-        $yearRange = range($currentYear - 5, $currentYear + 5);
+        $stationId = $stationId ?? $this->stationId;
+        $station=NOAAStation::where('station_id', $stationId)->first();
+        $yearRange = range($currentYear - 0, $currentYear + 1);
         $calendarData = [];
 
-        // Fetch solar events for all required years
+        // Fetch solar events
         $solarEvents = SolarEvent::whereIn('year', $yearRange)->get()->keyBy('year');
+
+        // Fetch tide and NOAA data for the station
+        $noaaData = NOAATideForecast::where('station_id', $station->id)
+            ->whereIn('year', $yearRange)->get()->keyBy('year');
+
 
         $moons = [
             ['name' => 'Magnetic Moon', 'latin' => 'Luna Magnetica', 'roman' => 'Unus', 'offset' => 0],
@@ -42,7 +52,7 @@ class CustomCalendar
 
         foreach ($yearRange as $year) {
             if (!isset($solarEvents[$year])) {
-                continue; // Skip years without solar event data
+                continue;
             }
 
             $vernalEquinox = Carbon::parse($solarEvents[$year]->march_equinox);
@@ -54,12 +64,23 @@ class CustomCalendar
 
                 for ($i = 0; $i < 28; $i++) {
                     $dayDate = $monthStart->copy()->addDays($i);
+                    $dayTideData = $noaaData[$year]->where('date', $dayDate->toDateString())->first();
+
                     $monthDays[] = [
                         'date' => $dayDate->toDateString(),
                         'day_of_week' => $dayDate->format('l'),
                         'julian_day' => $dayDate->dayOfYear,
                         'gregorian_date' => $dayDate->format('d-m-Y'),
                         'moon_phase' => $this->getMoonPhase($dayDate),
+                        'tide_data' => $dayTideData ? [
+                            'high_tide_time' => $dayTideData->high_tide_time,
+                            'high_tide_level' => $dayTideData->high_tide_level,
+                            'low_tide_time' => $dayTideData->low_tide_time,
+                            'low_tide_level' => $dayTideData->low_tide_level,
+                            'water_temperature' => $dayTideData->water_temperature,
+                            'sunrise' => $dayTideData->sunrise,
+                            'sunset' => $dayTideData->sunset
+                        ] : null,
                     ];
                 }
 
@@ -72,7 +93,6 @@ class CustomCalendar
                 ];
             }
 
-            // Assign solar events at the **year level**
             $calendarData[$year] = [
                 'solar_events' => [
                     'march_equinox' => Carbon::parse($solarEvents[$year]->march_equinox)->format('d-m-Y H:i:s'),
@@ -80,11 +100,10 @@ class CustomCalendar
                     'september_equinox' => Carbon::parse($solarEvents[$year]->september_equinox)->format('d-m-Y H:i:s'),
                     'december_solstice' => Carbon::parse($solarEvents[$year]->december_solstice)->format('d-m-Y H:i:s'),
                 ],
-                'is_leap_year'=>($year % 4 == 0 && $year % 100 != 0) || ($year % 400 == 0),
+                'is_leap_year' => ($year % 4 == 0 && $year % 100 != 0) || ($year % 400 == 0),
                 'months' => $months,
             ];
         }
-
         return $calendarData;
     }
 

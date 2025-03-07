@@ -116,7 +116,7 @@
                         <div class="accordion-body">
                             @if(isset($data['solar_events']))
                                 <div class="solar-events">
-                                    <h6 class="text-center">Solar Events for {{ $year }}</h6>
+                                    <h6 class="text-center">Solar Events for {{ $year }} for {{$nearestStation->name}}</h6>
                                     <div class="table-responsive">
                                         <table class="table table-sm table-bordered ">
                                             <thead class="table-dark text-center">
@@ -168,11 +168,11 @@
                                                 <span class="date-info">{{ $day['julian_day'] }}</span>
                                                 <span class="date-info">{{ $day['moon_phase'] }}</span>
                                                 @php
-                                                    $tide = \Tuna976\CustomCalendar\Models\NOAATideForecast::where('date', $day['date'])->first();
+                                                    $tide =$day['tide_data'];
                                                 @endphp
                                                 @if ($tide)
-                                                    <span class="date-info">🌊 High: {{ $tide->high_tide_time }} ({{ $tide->high_tide_level }}m)</span>
-                                                    <span class="date-info">🌊 Low: {{ $tide->low_tide_time }} ({{ $tide->low_tide_level }}m)</span>
+                                                    <span class="date-info">🌊 High: {{ $tide['high_tide_time'] }} ({{ $tide['high_tide_level'] }}m)</span>
+                                                    <span class="date-info">🌊 Low: {{ $tide['low_tide_time'] }} ({{ $tide['low_tide_level'] }}m)</span>
                                                 @else
                                                     <span class="date-info">Tide data unavailable</span>
                                                 @endif

@@ -10,7 +10,7 @@ return new class extends Migration {
             $table->id();
             $table->integer('year');
             $table->string('month');
-            $table->date('date')->unique();
+            $table->date('date');
 
             // Tide Data
             $table->time('high_tide_time')->nullable();
@@ -28,6 +28,10 @@ return new class extends Migration {
             $table->time('sunrise')->nullable();
             $table->time('sunset')->nullable();
             $table->string('moon_phase')->nullable(); // Moon phase name (e.g., Full Moon)
+
+
+            $table->integer('station_id');
+
 
             $table->timestamps();
         });

@@ -20,6 +20,7 @@ Run the following command to install the package via Composer:
 
 ```bash
 composer require 976-tuna/custom-calendar
+```
 
 
 
@@ -49,7 +50,7 @@ A standalone Laravel package for integrating a **custom 13-month, 28-day calenda
 ### **1. Install via Composer**
 ```sh
 composer require 976-tuna/custom-calendar
-```
+
 
 ---
 
