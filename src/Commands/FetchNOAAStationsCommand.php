@@ -40,8 +40,7 @@ class FetchNOAAStationsCommand extends Command
                 ]
             );
         }
-
-        return response()->json(['message' => 'NOAA stations updated successfully']);
+        $this->info('NOAA stations updated successfully');
     }
 
 }
