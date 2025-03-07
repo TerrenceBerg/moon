@@ -72,7 +72,7 @@ class CustomCalendar
                         'date' => $dayDate->toDateString(),
                         'day_of_week' => $dayDate->format('l'),
                         'julian_day' => $dayDate->dayOfYear,
-                        'gregorian_date' => $dayDate->format('d-m-Y'),
+                        'gregorian_date' => $dayDate->format('M j, Y'),
                         'moon_phase' => $this->getMoonPhase($dayDate),
 //                        'sun_data' => $this->getSunriseSunset($station->longitue,$station->latitue,$dayDate),
                         'tide_data' => $dayTideData ? [
