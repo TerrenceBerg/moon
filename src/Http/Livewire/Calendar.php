@@ -13,7 +13,9 @@ use Tuna976\CustomCalendar\Models\NOAATideForecast;
 class Calendar extends Component
 {
     public $stations;
+    public $selectedStationId;
     public $selectedStation;
+    public $location;
     public $calendarData;
     public $loading = false;
 
@@ -21,17 +23,36 @@ class Calendar extends Component
     public $modalData;
     public $showModal = false;
 
-    public function mount($stationId = null)
+    public function mount()
     {
+
+        $ip = request()->ip();
+        if ($ip === '127.0.0.1' || $ip === '::1') {
+            $this->location = ['lat' => 34.0522, 'lon' => -118.2437,'city'=>'Los Angeles']; // Default: Los Angeles, CA
+        } else {
+            $this->location = $this->getLocationFromIP($ip);
+        }
+        if (!$this->location) {
+            return response()->json(['error' => 'Unable to determine location.'], 400);
+        }
+        $nearestStation = NOAAStation::getNearestStation($this->location['lat'], $this->location['lon']);
+
+
+        if (!$nearestStation) {
+            return response()->json(['error' => 'No station found.'], 404);
+        }
+
+
         $this->stations = NOAAStation::all();
-        $this->selectedStation = $stationId ?? $this->stations->first()->id;
+        $this->selectedStationId = $nearestStation->id ?? $this->stations->first()->id;
+        $this->selectedStation = NOAAStation::find($this->selectedStationId);
         $this->loadCalendar();
     }
 
     public function loadCalendar()
     {
         $this->loading = true;
-        $calendarService = new CustomCalendar(now()->year, $this->selectedStation);
+        $calendarService = new CustomCalendar(now()->year, $this->selectedStationId);
         $this->calendarData = $calendarService->generateCalendar();
         $this->loading = false;
     }
@@ -45,17 +66,18 @@ class Calendar extends Component
     {
 
         $this->selectedDate = $date;
-        $this->modalData = NOAATideForecast::where('station_id', $this->selectedStation)
+        $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
             ->whereDate('date', $date)
             ->first();
         if (!isset($this->modalData->sunrise) || !isset($this->modalData->sunset))
         {
-            $this->storeSunriseSunsetData($date,$this->selectedStation);
-            $this->modalData = NOAATideForecast::where('station_id', $this->selectedStation)
+            $this->storeSunriseSunsetData($date,$this->selectedStationId);
+            $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
                 ->whereDate('date', $date)
                 ->first();
         }
         $this->modalData->moon_phase=$this->getMoonPhase($date);
+
 
         $this->showModal = true;
     }
@@ -120,5 +142,24 @@ class Calendar extends Component
         } catch (\Exception $e) {
             \Log::error("Failed to fetch sunrise/sunset data: " . $e->getMessage());
         }
+    }
+    private function getLocationFromIP($ip)
+    {
+        $apiUrl = "https://ipapi.co/{$ip}/json/";
+
+        $response = Http::get($apiUrl);
+
+        if ($response->failed()) {
+            return null;
+        }
+
+        $data = $response->json();
+        dd($data);
+
+        return [
+            'lat' => $data['latitude'] ?? null,
+            'lon' => $data['longitude'] ?? null,
+            'city' => $data['city'] ?? 'Unknown'
+        ];
     }
 }

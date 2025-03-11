@@ -1,4 +1,9 @@
 <div>
+
+    <h4 class="text-primary">Your current location: <strong>{{$location['city']}}</strong></h4>
+    <h5 class="text-muted">Nearest NOAA station: <strong>{{$selectedStation->name}}</strong></h5>
+
+
     <!-- Station Selector -->
     <div class="mb-3">
         <label for="stationSelect" class="form-label">Select Station:</label>
@@ -8,6 +13,7 @@
             @endforeach
         </select>
     </div>
+
 
     <!-- Full Page Loader -->
     <div wire:loading.delay class="full-page-loader">
@@ -60,7 +66,7 @@
                                                 <div class="day-header">Sat</div>
 
                                                 @foreach($month['days'] as $day)
-                                                    <div class="calendar-day">
+                                                    <div class="calendar-day" style="{{ $day['is_today'] ? 'background-color: rgba(220, 53, 69, 0.2); color: black;' : '' }}">
                                                         <span class="gregorian-date">{{ $day['gregorian_date'] }}</span>
                                                         <span class="date-info">{{ $day['julian_day'] }}</span>
                                                         <span class="date-info">{{ $day['moon_phase'] }}</span>

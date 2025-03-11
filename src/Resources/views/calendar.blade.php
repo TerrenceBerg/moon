@@ -95,7 +95,7 @@
 <body>
 
 <div class="container">
-    <livewire:custom-calendar :station-id="$nearestStation->id" />
+    <livewire:custom-calendar  />
 </div>
 
 

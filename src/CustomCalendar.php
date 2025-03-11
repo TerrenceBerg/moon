@@ -25,7 +25,7 @@ class CustomCalendar
         $currentYear = $year ?? Carbon::now()->year;
         $stationId = $stationId ?? $this->stationId;
         $station = NOAAStation::where('id', $stationId)->firstOrFail();
-        $yearRange = [$currentYear, $currentYear];
+        $yearRange = [$currentYear-1, $currentYear];
         $calendarData = [];
 
         $solarEvents = SolarEvent::whereIn('year', $yearRange)->pluck('march_equinox', 'year');
@@ -58,6 +58,7 @@ class CustomCalendar
                         'julian_day' => Carbon::parse($dayDate)->dayOfYear,
                         'gregorian_date' => Carbon::parse($dayDate)->format('M j, Y'),
                         'moon_phase' => $this->getMoonPhase($dayDate),
+                        'is_today' => Carbon::parse($dayDate)->isToday(),
                         'tide_data' => $dayTideData ? $this->formatTideData($dayTideData) : null,
                     ];
                 }
