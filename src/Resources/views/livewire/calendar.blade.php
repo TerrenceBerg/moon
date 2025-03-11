@@ -8,7 +8,7 @@
                 <label for="stationSelect" class="form-label fw-bold">Select Station:</label>
                 <select wire:model="selectedStation" id="stationSelect" class="form-control">
                     @foreach ($stations as $station)
-                        <option value="{{ $station->id }}">{{ $station->name }}</option>
+                        <option value="{{ $station->id }}" @if(isset($selectedStation) && $selectedStation->id==$station->id) selected @endif>{{ $station->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -262,6 +262,8 @@
             }
         }
     </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
@@ -270,6 +272,23 @@
                     todayElement.scrollIntoView({behavior: 'smooth', block: 'center'});
                 }
             }, 500);
+        });
+    </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            $('#stationSelect').select2().on('change', function (e) {
+                Livewire.dispatch('updateStation', $(this).val());
+            });
+        });
+
+        document.addEventListener('livewire:load', function () {
+            Livewire.hook('message.processed', () => {
+                $('#stationSelect').select2();
+            });
         });
     </script>
 </div>

@@ -43,7 +43,7 @@ class Calendar extends Component
         }
 
 
-        $this->stations = NOAAStation::all();
+        $this->stations = NOAAStation::orderBy('name')->get();
         $this->selectedStationId = $nearestStation->id ?? $this->stations->first()->id;
         $this->selectedStation = NOAAStation::find($this->selectedStationId);
         $this->loadCalendar();
