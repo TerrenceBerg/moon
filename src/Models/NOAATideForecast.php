@@ -7,5 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class NOAATideForecast extends Model
 {
     protected $guarded = [];
-//    protected $table = 'noaa_tide_forecasts_old';
+    protected $table = 'noaa_tide_forecasts';
 }
