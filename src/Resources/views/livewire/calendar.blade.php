@@ -101,7 +101,7 @@
                     <div class="modal-header bg-gradient text-white"
                          style="background: linear-gradient(to right, #1e3c72, #2a5298);">
                         <h5 class="modal-title text-dark">🌙 Astronomical Data for {{ $selectedDate }}</h5>
-                        <button type="button" class="btn-close" wire:click="closeModal"></button>
+                        <button type="button" class="btn-close" wire:click.prevent="closeModal"></button>
                     </div>
                     <div class="modal-body p-4">
                         <div class="text-center mb-4">
@@ -146,13 +146,90 @@
         </div>
     @endif
     <style>
+
+        /* Make sure the entire calendar spans the full page width */
+        .calendar-container {
+            width: 100vw; /* Full viewport width */
+            max-width: 100vw;
+            margin: 0;
+            padding: 20px;
+            background: #fff;
+            border-radius: 0; /* Remove border-radius to make it fully extend */
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Remove Bootstrap's default container padding */
+        .container-fluid, .container {
+            max-width: 100%;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        /* Ensure full-width row */
+        .calendar-container .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        /* Fully expand the accordion */
+        .accordion {
+            width: 100%;
+        }
+
+        /* Expand accordion-body */
+        .accordion-body {
+            width: 100%;
+            padding: 20px;
+        }
+
+        /* Ensure calendar grid fills available width */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 10px;
+            width: 100%;
+        }
+
+        /* Ensure each calendar day takes full width */
+        .calendar-day {
+            background: white;
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+            border: 1px solid #dee2e6;
+            width: 100%;
+        }
+
+        /* Remove left/right margin from Bootstrap's default container */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll issues */
+        }
+
+        /* Adjust for tablets */
+        @media (min-width: 768px) {
+            .calendar-container {
+                padding: 30px;
+            }
+        }
+
+        /* Adjust for larger screens */
+        @media (min-width: 1024px) {
+            .calendar-container {
+                padding: 40px;
+            }
+        }
         .fixed-header {
             position: fixed;
             top: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 90%;
-            max-width: 1200px;
+            width: 100%;
             background: white;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 15px 20px;
@@ -184,83 +261,6 @@
         .loader-content {
             text-align: center;
         }
-
-        .calendar-container {
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 3px;
-            background: #e9ecef;
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        .calendar-day {
-            background: white;
-            padding: 8px;
-            border-radius: 5px;
-            text-align: center;
-            font-size: 12px;
-            border: 1px solid #dee2e6;
-        }
-
-        .calendar-day:hover {
-            background: #f1f1f1;
-            cursor: pointer;
-        }
-
-        .day-header {
-            font-weight: bold;
-            text-align: center;
-            background: #343a40;
-            color: white;
-            padding: 5px;
-            font-size: 12px;
-            border-radius: 5px;
-        }
-
-        .calendar-day[style*="background-color: rgba(255, 99, 132, 0.3)"] {
-            font-weight: bold;
-            border: 2px solid red !important;
-        }
-
-        @media (max-width: 768px) {
-            .fixed-header {
-                width: 95%;
-            }
-
-            .modal-dialog {
-                max-width: 90%;
-            }
-
-            .modal-content {
-                font-size: 14px;
-            }
-
-            .header-spacer {
-                height: 110px;
-            }
-
-            .calendar-grid {
-                grid-template-columns: repeat(7, minmax(25px, 1fr));
-                font-size: 10px;
-                padding: 5px;
-            }
-
-            .calendar-day {
-                padding: 6px;
-                font-size: 10px;
-            }
-
-            .d-none.d-md-block {
-                display: none !important;
-            }
-        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -277,17 +277,28 @@
 
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            $('#stationSelect').select2().on('change', function (e) {
-                Livewire.dispatch('updateStation', $(this).val());
-            });
-        });
+        document.addEventListener("DOMContentLoaded", function () {
+            let stationSelect = $('#stationSelect');
 
-        document.addEventListener('livewire:load', function () {
+            // Initialize Select2
+            stationSelect.select2();
+
+            // On change, dispatch event to Livewire
+            stationSelect.on('change', function (e) {
+                let selectedStation = $(this).val();
+
+                $('#loader').show(); // Show loader
+
+                Livewire.dispatch('updateStation', selectedStation); // Emit event for Livewire
+
+                console.log("Livewire Event Dispatched:", selectedStation); // Debugging log
+            });
+
+            // Re-initialize Select2 after Livewire updates
             Livewire.hook('message.processed', () => {
-                $('#stationSelect').select2();
+                stationSelect.select2();
+                $('#loader').hide(); // Hide loader when update is done
             });
         });
     </script>

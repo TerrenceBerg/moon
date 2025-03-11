@@ -12,6 +12,7 @@ use Tuna976\CustomCalendar\Models\NOAATideForecast;
 
 class Calendar extends Component
 {
+    protected $listeners = ['updateStation' => 'setStation'];
     public $stations;
     public $selectedStationId;
     public $selectedStation;
@@ -57,8 +58,11 @@ class Calendar extends Component
         $this->loading = false;
     }
 
-    public function updatedSelectedStation()
+
+    public function setStation($stationId)
     {
+        dd($stationId);
+        $this->selectedStationId = $stationId;
         $this->loadCalendar();
     }
 
@@ -154,8 +158,6 @@ class Calendar extends Component
         }
 
         $data = $response->json();
-        dd($data);
-
         return [
             'lat' => $data['latitude'] ?? null,
             'lon' => $data['longitude'] ?? null,
