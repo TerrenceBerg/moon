@@ -3,8 +3,6 @@
 namespace Tuna976\CustomCalendar;
 
 use Carbon\Carbon;
-use Carbon\CarbonTimeZone;
-use Illuminate\Support\Facades\Http;
 use Tuna976\CustomCalendar\Models\NOAAStation;
 use Tuna976\CustomCalendar\Models\SolarEvent;
 use Tuna976\CustomCalendar\Models\NOAATideForecast;
