@@ -2,197 +2,123 @@
 
 namespace Tuna976\CustomCalendar\Http\Livewire;
 
-use Livewire\Component;
 use Carbon\Carbon;
+use Carbon\CarbonTimeZone;
+use Illuminate\Support\Facades\Http;
+use Livewire\Component;
+use Tuna976\CustomCalendar\CustomCalendar;
+use Tuna976\CustomCalendar\Models\NOAAStation;
+use Tuna976\CustomCalendar\Models\NOAATideForecast;
 
 class Calendar extends Component
 {
-    public Carbon $currentDate;
-    public $daysSinceLunarStart;
-    public string $viewMode = 'month'; // Default view mode
-    protected array $moons = [];
+    public $stations;
+    public $selectedStation;
+    public $calendarData;
+    public $loading = false;
 
+    public $selectedDate;
+    public $modalData;
+    public $showModal = false;
 
-    public function mount()
+    public function mount($stationId = null)
     {
-        $this->currentDate = Carbon::now();
-        $this->moons = $this->defineMoons();
-        $this->calculateLunarDate();
+        $this->stations = NOAAStation::all();
+        $this->selectedStation = $stationId ?? $this->stations->first()->id;
+        $this->loadCalendar();
     }
-    public function calculateLunarDate()
+
+    public function loadCalendar()
     {
-        // Define lunar year start (adjust if needed)
-        $lunarYearStart = Carbon::create($this->currentDate->year, 7, 26);
+        $this->loading = true;
+        $calendarService = new CustomCalendar(now()->year, $this->selectedStation);
+        $this->calendarData = $calendarService->generateCalendar();
+        $this->loading = false;
+    }
 
-        // Calculate the total days from the lunar start to the current date
-        $this->daysSinceLunarStart = $lunarYearStart->diffInDays($this->currentDate);
+    public function updatedSelectedStation()
+    {
+        $this->loadCalendar();
+    }
 
-        // Ensure days don't go negative (for dates before July 26)
-        if ($this->daysSinceLunarStart < 0) {
-            $this->daysSinceLunarStart = 0;
+    public function loadMoreData($date)
+    {
+
+        $this->selectedDate = $date;
+        $this->modalData = NOAATideForecast::where('station_id', $this->selectedStation)
+            ->whereDate('date', $date)
+            ->first();
+        if (!isset($this->modalData->sunrise) || !isset($this->modalData->sunset))
+        {
+            $this->storeSunriseSunsetData($date,$this->selectedStation);
+            $this->modalData = NOAATideForecast::where('station_id', $this->selectedStation)
+                ->whereDate('date', $date)
+                ->first();
         }
+        $this->modalData->moon_phase=$this->getMoonPhase($date);
 
-        // Each moon lasts exactly 28 days
-        $this->currentLunarDay = ($this->daysSinceLunarStart % 28) + 1;
+        $this->showModal = true;
     }
 
-    public function next()
+    public function closeModal()
     {
-        match ($this->viewMode) {
-            'year' => $this->currentDate->addYear(),
-            'month' => $this->moveToNextMoon(),
-            'day' => $this->currentDate->addDay(),
-        };
+        $this->showModal = false;
+        $this->selectedDate = null;
+        $this->modalData = null;
     }
-
-    public function previous()
-    {
-        match ($this->viewMode) {
-            'year' => $this->currentDate->subYear(),
-            'month' => $this->moveToPreviousMoon(),
-            'day' => $this->currentDate->subDay(),
-        };
-    }
-
-    public function changeView(string $mode)
-    {
-        $this->viewMode = $mode;
-    }
-
     public function render()
     {
         return view('customcalendar::livewire.calendar', [
-            'currentLunarMonth' => $this->getCurrentLunarMonth(),
-            'currentLunarDay' => $this->getCurrentLunarDay(),
-            'currentDate' => $this->currentDate,
-            'daysInMonth' => $this->generateMonthView(),
-            'monthsInYear' => $this->generateYearView(),
-            'lunarMonthNames' => $this->getLunarMonthNames(),
+            'calendarData' => $this->calendarData
         ]);
     }
-
-    private function defineMoons(): array
+    private function getMoonPhase($date)
     {
-        return [
-            ['name' => 'Magnetic Moon', 'number' => 1, 'offset' => 0],
-            ['name' => 'Lunar Moon', 'number' => 2, 'offset' => 28],
-            ['name' => 'Electric Moon', 'number' => 3, 'offset' => 56],
-            ['name' => 'Self-Existing Moon', 'number' => 4, 'offset' => 84],
-            ['name' => 'Overtone Moon', 'number' => 5, 'offset' => 112],
-            ['name' => 'Rhythmic Moon', 'number' => 6, 'offset' => 140],
-            ['name' => 'Resonant Moon', 'number' => 7, 'offset' => 168],
-            ['name' => 'Galactic Moon', 'number' => 8, 'offset' => 196],
-            ['name' => 'Solar Moon', 'number' => 9, 'offset' => 224],
-            ['name' => 'Planetary Moon', 'number' => 10, 'offset' => 252],
-            ['name' => 'Spectral Moon', 'number' => 11, 'offset' => 280],
-            ['name' => 'Crystal Moon', 'number' => 12, 'offset' => 308],
-            ['name' => 'Cosmic Moon', 'number' => 13, 'offset' => 336],
+        $synodicMonth = 29.53058867;
+        $knownNewMoon = Carbon::create(2000, 1, 6, 18, 14, 0);
+        $daysSinceNewMoon = $knownNewMoon->floatDiffInDays(Carbon::parse($date));
+
+        $moonPhases = [
+            'New Moon 🌑', 'Waxing Crescent 🌒', 'First Quarter 🌓',
+            'Waxing Gibbous 🌔', 'Full Moon 🌕', 'Waning Gibbous 🌖',
+            'Last Quarter 🌗', 'Waning Crescent 🌘'
         ];
+
+        return $moonPhases[(int)round(($daysSinceNewMoon % $synodicMonth) / $synodicMonth * 8) % 8] ?? null;
     }
 
-    private function getCurrentMoon(): array
+    private function storeSunriseSunsetData($date, $station_id)
     {
-        $this->moons = $this->defineMoons();
-        if (empty($this->moons)) {
-            throw new \Exception("Moon phases data is missing. Ensure moons are defined.");
+        try {
+            $station=NOAAStation::find($station_id);
+            $latitude = $station->latitude;
+            $longitude = $station->longitude;
+
+                $formattedDate = Carbon::parse($date)->format('Y-m-d');
+
+                $response = Http::get("https://api.sunrise-sunset.org/json", [
+                    'lat' => $latitude,
+                    'lng' => $longitude,
+                    'formatted' => 0,
+                    'date' => $formattedDate
+                ]);
+
+                $data = $response->json();
+                // Convert UTC to PST
+                $sunriseUTC = Carbon::parse($data['results']['sunrise']);
+                $sunsetUTC = Carbon::parse($data['results']['sunset']);
+                $pstTimeZone = new CarbonTimeZone('America/Los_Angeles');
+
+                $sunrisePST = $sunriseUTC->setTimezone($pstTimeZone)->format('H:i');
+                $sunsetPST = $sunsetUTC->setTimezone($pstTimeZone)->format('H:i');
+
+                // Update or Create the record
+                NOAATideForecast::updateOrCreate(
+                    ['station_id' => $station->id, 'date' => $formattedDate],
+                    ['sunrise' => $sunrisePST, 'sunset' => $sunsetPST]
+                );
+        } catch (\Exception $e) {
+            \Log::error("Failed to fetch sunrise/sunset data: " . $e->getMessage());
         }
-
-        $startOfYear = Carbon::create($this->currentDate->year, 7, 26);
-
-        foreach ($this->moons as $moon) {
-            $moonStart = $startOfYear->copy()->addDays($moon['offset']);
-            $moonEnd = $moonStart->copy()->addDays(27); // Each moon lasts 28 days
-
-            if ($this->currentDate->between($moonStart, $moonEnd)) {
-                return $moon;
-            }
-        }
-
-        // Default to the first moon if none found
-        return $this->moons[0] ?? ['name' => 'Unknown Moon', 'offset' => 0];
-    }
-
-    private function moveToNextMoon()
-    {
-        $currentMoon = $this->getCurrentMoon();
-        $nextMoon = $this->moons[$currentMoon['number']] ?? null;
-
-        if ($nextMoon) {
-            $this->currentDate = Carbon::create($this->currentDate->year, 7, 26)->addDays($nextMoon['offset']);
-        } else {
-            $this->currentDate = Carbon::create($this->currentDate->year + 1, 7, 26);
-        }
-    }
-
-    private function moveToPreviousMoon()
-    {
-        $currentMoon = $this->getCurrentMoon();
-        $prevMoon = $this->moons[$currentMoon['number'] - 2] ?? null;
-
-        if ($prevMoon) {
-            $this->currentDate = Carbon::create($this->currentDate->year, 7, 26)->addDays($prevMoon['offset']);
-        } else {
-            $this->currentDate = Carbon::create($this->currentDate->year - 1, 7, 26)->addDays(336);
-        }
-    }
-
-    private function generateMonthView(): \Illuminate\Support\Collection
-    {
-        $currentMoon = $this->getCurrentMoon();
-        $startOfYear = Carbon::create($this->currentDate->year, 7, 26);
-        $startOfMoon = $startOfYear->copy()->addDays($currentMoon['offset']);
-
-        return collect(range(1, 28))->map(fn($day) => [
-            'day_number' => $day,
-            'date' => $startOfMoon->copy()->addDays($day - 1),
-        ]);
-    }
-    private function generateYearView(): \Illuminate\Support\Collection
-    {
-        $startOfYear = Carbon::create($this->currentDate->year, 7, 26); // Start of 13-moon year
-
-        return collect($this->moons)->map(function ($moon) use ($startOfYear) {
-            $startOfMoon = $startOfYear->copy()->addDays($moon['offset']);
-
-            return [
-                'name' => $moon['name'],
-                'days' => collect(range(1, 28))->map(fn ($day) => $startOfMoon->copy()->addDays($day - 1)),
-            ];
-        });
-    }
-
-    private function getLunarMonthNames(): array
-    {
-        return array_column($this->moons, 'name', 'number');
-    }
-
-    public function getCurrentLunarMonth()
-    {
-        $this->moons = $this->defineMoons();
-        $startOfYear = Carbon::create($this->currentDate->year, 7, 26);
-
-        foreach ($this->moons as $moon) {
-            $moonStart = $startOfYear->copy()->addDays($moon['offset']);
-            $moonEnd = $moonStart->copy()->addDays(27); // Each moon lasts 28 days
-
-            if ($this->currentDate->between($moonStart, $moonEnd)) {
-                return $moon['number']; // Return the moon number
-            }
-        }
-
-        return 1; // Default to the first moon if not found
-    }
-    public function getCurrentLunarDay()
-    {
-        // Define lunar year start date (adjust if needed)
-        $lunarYearStart = Carbon::create($this->currentDate->year, 7, 26);
-
-        // Calculate the total days from the lunar start to the current date
-        $daysSinceLunarStart = $lunarYearStart->diffInDays($this->currentDate);
-
-        // Each moon lasts exactly 28 days
-        $lunarDay = ($daysSinceLunarStart % 28) + 1;
-
-        return $lunarDay;
     }
 }

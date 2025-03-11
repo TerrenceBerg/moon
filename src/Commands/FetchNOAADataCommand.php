@@ -2,6 +2,7 @@
 
 namespace Tuna976\CustomCalendar\Commands;
 
+use Carbon\CarbonTimeZone;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Tuna976\CustomCalendar\Models\NOAATideForecast;
@@ -26,7 +27,7 @@ class FetchNOAADataCommand extends Command
 
         $startDate = Carbon::today();
         $endDate = $startDate->copy()->addDays((int) $this->argument('days'));
-        $products = ['predictions', 'water_temperature', 'sunrise_sunset'];
+        $products = ['predictions', 'water_temperature'];
         $noaaApiUrl = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter";
 
         foreach ($stations as $station) {
@@ -59,9 +60,10 @@ class FetchNOAADataCommand extends Command
                 match ($product) {
                     'predictions' => $this->storeTideData($data['predictions'], $station->id),
                     'water_temperature' => $this->storeWaterTempData($data['data'], $station->id),
-                    'sunrise_sunset' => $this->storeSunriseSunsetData($data['data'], $station->id),
+//                    'sunrise_sunset' => $this->storeSunriseSunsetData($data['data'], $station->id),
                 };
             }
+            $this->getSunriseSunset($station->id,$station->latitude,$station->longitude,$startDate,$endDate);
         }
 
         $this->info("NOAA data successfully fetched and stored for {$startDate->format('Y-m-d')} to {$endDate->format('Y-m-d')}");
@@ -114,7 +116,8 @@ class FetchNOAADataCommand extends Command
             $date = Carbon::parse($record['t'])->toDateString();
             NOAATideForecast::updateOrCreate(
                 ['station_id' => $stationId, 'date' => $date],
-                ['water_temperature' => (float) $record['v']]
+                ['water_temperature' => (float) $record['v']],
+                ['year' => Carbon::parse($date)->year]
             );
         }
     }
@@ -130,6 +133,48 @@ class FetchNOAADataCommand extends Command
                     'sunset' => Carbon::parse($record['sunset'])->format('H:i')
                 ]
             );
+        }
+    }
+
+    public function getSunriseSunset($stationId, $latitude, $longitude, $startDate, $endDate)
+    {
+        try {
+            $pstTimeZone = new CarbonTimeZone('America/Los_Angeles');
+            $start = Carbon::parse($startDate);
+            $end = Carbon::parse($endDate);
+
+            while ($start->lte($end)) {
+                $response = Http::get("https://api.sunrise-sunset.org/json", [
+                    'lat' => $latitude,
+                    'lng' => $longitude,
+                    'formatted' => 0,
+                    'date' => $start->format('Y-m-d')
+                ]);
+
+                $data = $response->json();
+
+                if (!isset($data['results'])) {
+                    $this->error("No sunrise/sunset data for {$start->format('Y-m-d')}");
+                } else {
+                    $sunrisePST = Carbon::parse($data['results']['sunrise'])->format('H:i');
+                    $sunsetPST = Carbon::parse($data['results']['sunset'])->format('H:i');
+                    dd($sunrisePST, $sunsetPST,$data,$stationId,$startDate,$endDate,$latitude,$longitude,$start);
+                    NOAATideForecast::updateOrCreate(
+                        ['station_id' => $stationId, 'date' => $start->toDateString()],
+                        [
+                            'sunrise' => $sunrisePST,
+                            'sunset' => $sunsetPST,
+                             'year' => Carbon::parse($start)->year,
+                        ]
+                    );
+
+                    $this->info("Stored sunrise/sunset for {$start->format('Y-m-d')} at station {$stationId}");
+                }
+
+                $start->addDay();
+            }
+        } catch (\Exception $e) {
+            $this->error("Error fetching sunrise/sunset data: " . $e->getMessage());
         }
     }
 }

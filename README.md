@@ -1,4 +1,5 @@
-# 976-Tuna Custom Calendar Package
+# TerSun Calendar
+# A calendar for humans 
 
 A standalone Laravel package for integrating a custom 13-month, 28-day calendar. This package overlays the normal Gregorian calendar, incorporates solunar and tide data, and includes moon phases. It uses NOAA data to enrich the calendar with real-world astronomical information.
 
