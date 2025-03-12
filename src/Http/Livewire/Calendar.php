@@ -61,14 +61,12 @@ class Calendar extends Component
 
     public function setStation($stationId)
     {
-        dd($stationId);
         $this->selectedStationId = $stationId;
         $this->loadCalendar();
     }
 
     public function loadMoreData($date)
     {
-
         $this->selectedDate = $date;
         $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
             ->whereDate('date', $date)

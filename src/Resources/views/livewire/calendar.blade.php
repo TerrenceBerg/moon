@@ -46,8 +46,8 @@
                                 {{--                                    ☀️ Solar Events for {{ $year }} - {{ $stations->firstWhere('station_id', $selectedStation)?->name }}--}}
                                 {{--                                </h6>--}}
                                 <div class="row">
-                                    @foreach ($data['months'] as $month)
-                                        <div class="calendar-month col-12" id="month-{{ $month['name'] }}">
+                                    @foreach ($data['months'] as $index=>$month)
+                                        <div class="calendar-month col-lg-6 col-md-6 col-sm-12 @if($index === 12) offset-lg-3 offset-md-3 @endif" id="month-{{ $month['name'] }}">
                                             <h5 class="text-center bg-primary text-white p-2 rounded">{{ $month['name'] }}</h5>
                                             <div class="calendar-grid">
                                                 <div class="day-header">Sun</div>
@@ -57,35 +57,58 @@
                                                 <div class="day-header">Thu</div>
                                                 <div class="day-header">Fri</div>
                                                 <div class="day-header">Sat</div>
-                                                @foreach($month['days'] as $day)
+                                                @foreach($month['days'] as $i=>$day)
                                                     <div class="calendar-day"
                                                          id="day-{{ $day['date'] }}"
-                                                         style="{{ $day['is_today'] ? 'background-color: rgba(255, 99, 132, 0.3); color: black; border: 2px solid red;' : '' }}">
-                                                        <span class="gregorian-date">{{ $day['gregorian_date'] }}</span>
-                                                        <span class="date-info">{{ $day['julian_day'] }}</span>
+                                                         style="{{ $day['is_today'] ? 'background-color: lightgreen; color: black; border: 2px solid green;' : '' }}">
+
+                                                        <!-- Desktop View (Hides on Mobile) -->
                                                         <div class="d-none d-md-block">
+                                                            <span class="gregorian-date">{{ $day['gregorian_date'] }}</span>
+                                                            <span class="date-info">{{ $day['julian_day'] }}</span>
+
                                                             <span class="date-info">{{ $day['moon_phase'] }}</span>
-                                                        </div>
-                                                        @php
-                                                            $tide = $day['tide_data'];
-                                                        @endphp
-                                                        <div class="d-none d-md-block">
+
+                                                            @php $tide = $day['tide_data']; @endphp
                                                             @if ($tide)
                                                                 <span class="date-info">🌊 High: {{ $tide['high_tide_time'] }} ({{ $tide['high_tide_level'] }}m)</span>
                                                                 <span class="date-info">🌊 Low: {{ $tide['low_tide_time'] }} ({{ $tide['low_tide_level'] }}m)</span>
-                                                            @else
-                                                                <span class="date-info">Tide data unavailable</span>
                                                             @endif
+                                                            <button class="btn btn-sm btn-light mt-2"
+                                                                    wire:click="loadMoreData('{{ $day['date'] }}')">
+                                                                <i class="bi bi-info-circle-fill text-primary"></i>
+                                                            </button>
                                                         </div>
-                                                        <button class="btn btn-sm btn-light mt-2"
-                                                                wire:click="loadMoreData('{{ $day['date'] }}')">
-                                                            <i class="bi bi-info-circle-fill text-primary"></i>
-                                                        </button>
+
+                                                        <!-- Mobile View (Hides on Desktop) -->
+                                                        <div class="d-block d-md-none text-center">
+                                                            <a style="cursor: pointer; font-size: 10px; font-weight: bold" href="" class="text-dark"
+                                                                    wire:click.prevent="loadMoreData('{{ $day['date'] }}')">
+                                                                {{++$i}}
+                                                            </a>
+                                                        </div>
+
                                                     </div>
                                                 @endforeach
                                             </div>
                                         </div>
                                     @endforeach
+{{--                                        <div class="calendar-month col-lg-2 col-md-12 col-sm-12 green-days-container">--}}
+{{--                                            <h5 class="text-center bg-success text-white p-2 rounded">Green Days</h5>--}}
+{{--                                            <div class="calendar-grid green-days-grid">--}}
+{{--                                                @php--}}
+{{--                                                    $totalDays = \Carbon\Carbon::parse($year)->format('L') ? 366 : 365;--}}
+{{--                                                    $greenDays = $totalDays - (13 * 28);--}}
+{{--                                                @endphp--}}
+{{--                                                @for ($i = 1; $i <= $greenDays; $i++)--}}
+{{--                                                    <div class="calendar-day green-day">--}}
+{{--                                                        <span class="gregorian-date text-dark">{{ $i }}</span>--}}
+{{--                                                        <span class="date-info">Green Day</span>--}}
+{{--                                                    </div>--}}
+{{--                                                @endfor--}}
+{{--                                            </div>--}}
+{{--                                        </div>--}}
+
                                 </div>
                             </div>
                         </div>
@@ -95,8 +118,9 @@
         </div>
     </div>
     @if($showModal)
-        <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.5);">
-            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false"
+             style="background: rgba(0, 0, 0, 0.5);">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-md-down" role="document">
                 <div class="modal-content border-0 shadow-lg rounded-4">
                     <div class="modal-header bg-gradient text-white"
                          style="background: linear-gradient(to right, #1e3c72, #2a5298);">
@@ -111,13 +135,13 @@
                             <div class="col-md-6">
                                 <div class="bg-light p-3 rounded-3 shadow-sm">
                                     <h6 class="text-warning">☀️ Sunrise</h6>
-                                    <p class="mb-0 fw-bold">{{ $modalData->sunrise ?? 'N/A' }}</p>
+                                    <p class="mb-0 fw-bold">{{ \Carbon\Carbon::parse($modalData->sunrise)->format('h:i:s a') ?? 'N/A' }}</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="bg-light p-3 rounded-3 shadow-sm">
                                     <h6 class="text-danger">🌅 Sunset</h6>
-                                    <p class="mb-0 fw-bold">{{ $modalData->sunset ?? 'N/A' }}</p>
+                                    <p class="mb-0 fw-bold">{{\Carbon\Carbon::parse($modalData->sunset)->format('h:i:s a')?? 'N/A' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -267,7 +291,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
-                const todayElement = document.querySelector('.calendar-day[style*="background-color: rgba(255, 99, 132, 0.3)"]');
+                const todayElement = document.querySelector('.calendar-day[style*="background-color: lightgreen"]');
                 if (todayElement) {
                     todayElement.scrollIntoView({behavior: 'smooth', block: 'center'});
                 }
