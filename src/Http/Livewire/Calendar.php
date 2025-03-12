@@ -62,6 +62,7 @@ class Calendar extends Component
     public function setStation($stationId)
     {
         $this->selectedStationId = $stationId;
+        $this->selectedStation = NOAAStation::find($this->selectedStationId);
         $this->loadCalendar();
     }
 

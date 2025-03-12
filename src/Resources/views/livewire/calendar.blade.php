@@ -80,7 +80,7 @@
                                                         <!-- Mobile View (Hides on Desktop) -->
                                                         <div class="d-block d-md-none text-center">
                                                             <a style="cursor: pointer; font-size: 10px; font-weight: bold" href="" class="text-dark"
-                                                                    wire:click.prevent="loadMoreData('{{ $day['date'] }}')">
+                                                               wire:click.prevent="loadMoreData('{{ $day['date'] }}')">
                                                                 {{++$i}}
                                                             </a>
                                                         </div>
@@ -290,14 +290,15 @@
             stationSelect.select2();
 
             // On change, dispatch event to Livewire
-            stationSelect.on('change', function (e) {
-                let selectedStation = $(this).val();
+            stationSelect.on('change', function () {
+                let selectedStation = parseInt($(this).val(), 10); // Convert to integer
 
-                $('#loader').show(); // Show loader
+                if (!isNaN(selectedStation)) {
+                    $('#loader').show(); // Show loader
 
-                Livewire.dispatch('updateStation', selectedStation); // Emit event for Livewire
-
-                console.log("Livewire Event Dispatched:", selectedStation); // Debugging log
+                    Livewire.dispatch('updateStation', { stationId: selectedStation }); // Send as object
+                    console.log("Livewire Event Dispatched:", selectedStation);
+                }
             });
 
             // Re-initialize Select2 after Livewire updates
