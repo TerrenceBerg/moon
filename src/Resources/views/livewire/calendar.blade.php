@@ -4,8 +4,8 @@
         <div class="header-content container">
             <h4 class="text-primary mb-1">📍 Location: <strong>{{$location['city']}}</strong></h4>
             <h5 class="text-muted mb-2">🌍 Nearest NOAA Station: <strong>{{$selectedStation->name}}</strong></h5>
-            <div>
-                <label for="stationSelect" class="form-label fw-bold">Select Station:</label>
+            <div class="">
+                <label for="stationSelect" class="form-label fw-bold">Select Station:</label><br>
                 <select wire:model="selectedStation" id="stationSelect" class="form-control">
                     @foreach ($stations as $station)
                         <option value="{{ $station->id }}" @if(isset($selectedStation) && $selectedStation->id==$station->id) selected @endif>{{ $station->name }}</option>
@@ -42,12 +42,9 @@
                              class="accordion-collapse collapse {{ $loop->first ? 'show' : '' }}"
                              aria-labelledby="heading-{{ $year }}" data-bs-parent="#yearAccordion">
                             <div class="accordion-body">
-                                {{--                                <h6 class="text-center">--}}
-                                {{--                                    ☀️ Solar Events for {{ $year }} - {{ $stations->firstWhere('station_id', $selectedStation)?->name }}--}}
-                                {{--                                </h6>--}}
                                 <div class="row">
                                     @foreach ($data['months'] as $index=>$month)
-                                        <div class="calendar-month col-lg-6 col-md-6 col-sm-12 @if($index === 12) offset-lg-3 offset-md-3 @endif" id="month-{{ $month['name'] }}">
+                                        <div class="calendar-month col-lg-12 col-md-12 col-sm-12 mt-4" id="month-{{ $month['name'] }}">
                                             <h5 class="text-center bg-primary text-white p-2 rounded">{{ $month['name'] }}</h5>
                                             <div class="calendar-grid">
                                                 <div class="day-header">Sun</div>
@@ -93,22 +90,6 @@
                                             </div>
                                         </div>
                                     @endforeach
-{{--                                        <div class="calendar-month col-lg-2 col-md-12 col-sm-12 green-days-container">--}}
-{{--                                            <h5 class="text-center bg-success text-white p-2 rounded">Green Days</h5>--}}
-{{--                                            <div class="calendar-grid green-days-grid">--}}
-{{--                                                @php--}}
-{{--                                                    $totalDays = \Carbon\Carbon::parse($year)->format('L') ? 366 : 365;--}}
-{{--                                                    $greenDays = $totalDays - (13 * 28);--}}
-{{--                                                @endphp--}}
-{{--                                                @for ($i = 1; $i <= $greenDays; $i++)--}}
-{{--                                                    <div class="calendar-day green-day">--}}
-{{--                                                        <span class="gregorian-date text-dark">{{ $i }}</span>--}}
-{{--                                                        <span class="date-info">Green Day</span>--}}
-{{--                                                    </div>--}}
-{{--                                                @endfor--}}
-{{--                                            </div>--}}
-{{--                                        </div>--}}
-
                                 </div>
                             </div>
                         </div>
@@ -220,7 +201,7 @@
         /* Ensure each calendar day takes full width */
         .calendar-day {
             background: white;
-            padding: 12px;
+            padding: 4px;
             border-radius: 5px;
             text-align: center;
             font-size: 14px;
