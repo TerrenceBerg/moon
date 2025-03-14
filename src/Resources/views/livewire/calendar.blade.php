@@ -103,6 +103,7 @@
              style="background: rgba(0, 0, 0, 0.5);">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-md-down" role="document">
                 <div class="modal-content border-0 shadow-lg rounded-4">
+                    @if ($modalData)
                     <div class="modal-header bg-gradient text-white"
                          style="background: linear-gradient(to right, #1e3c72, #2a5298);">
                         <h5 class="modal-title text-dark">🌙 Astronomical Data for {{ $selectedDate }}</h5>
@@ -135,17 +136,33 @@
                             <p><strong>Water Temperature:</strong> {{ $modalData->water_temperature ?? 'N/A' }}°C</p>
                         </div>
 
+                        <div class="d-flex justify-content-end mb-3">
+                            <button class="btn btn-outline-primary rounded-pill" wire:click="toggleTemperatureUnit">
+                                Toggle to {{ $temperatureUnit === 'C' ? '°F' : '°C' }}
+                            </button>
+                        </div>
+
+                        <!-- Weather Section -->
                         <div class="bg-light p-4 rounded-3 shadow-sm text-center">
-                            <h5 class="text-primary fw-bold">💨 Wind & Weather</h5>
-                            <p><strong>Wind Speed:</strong> {{ $modalData->wind_speed ?? 'N/A' }} m/s</p>
-                            <p><strong>Wind Direction:</strong> {{ $modalData->wind_direction ?? 'N/A' }}</p>
-                            <p><strong>Temperature:</strong> {{ $modalData->temperature ?? 'N/A' }}°C</p>
+                            <h5 class="text-primary fw-bold">🌤️ Weather Data</h5>
+                            <p><strong>🌡 Max Temperature:</strong> {{ $this->getTemperature($modalData->max_temp ?? 0) }}</p>
+                            <p><strong>🌡 Min Temperature:</strong> {{ $this->getTemperature($modalData->min_temp ?? 0) }}</p>
+                            <p><strong>🌧 Precipitation:</strong> {{ $modalData->precipitation ?? 'N/A' }} mm</p>
+                            <p><strong>💨 Wind Speed:</strong> {{ $modalData->wind_speed ?? 'N/A' }} m/s</p>
+                            <p><strong>🧭 Wind Direction:</strong> {{ $modalData->weather->wind_direction ?? 'N/A' }}</p>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-dark w-100 rounded-pill" wire:click="closeModal">Close
-                        </button>
+                        <button type="button" class="btn btn-dark w-100 rounded-pill" wire:click="closeModal">Close</button>
                     </div>
+                    @else
+                        <!-- Message when no data is found -->
+                        <div class="text-center py-5">
+                            <h4 class="text-muted">🚫 No Data Available</h4>
+                            <p class="text-secondary">We couldn't find any tide or weather data for the selected date.</p>
+                            <button class="btn btn-primary rounded-pill" wire:click="closeModal">Close</button>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -305,6 +322,16 @@
             Livewire.hook('message.processed', () => {
                 stationSelect.select2();
                 $('#loader').hide(); // Hide loader when update is done
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            Livewire.on('preserve-scroll', () => {
+                let scrollPosition = window.scrollY || document.documentElement.scrollTop;
+                Livewire.hook('message.processed', (message, component) => {
+                    window.scrollTo(0, scrollPosition);
+                });
             });
         });
     </script>

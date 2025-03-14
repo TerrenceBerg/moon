@@ -13,36 +13,19 @@ use Tuna976\CustomCalendar\Models\NOAATideForecast;
 class Calendar extends Component
 {
     protected $listeners = ['updateStation' => 'setStation'];
-    public $stations;
-    public $selectedStationId;
-    public $selectedStation;
-    public $location;
-    public $calendarData;
-    public $loading = false;
 
-    public $selectedDate;
-    public $modalData;
-    public $showModal = false;
+    public $stations, $selectedStationId, $selectedStation, $location, $calendarData;
+    public $loading = false, $selectedDate, $modalData, $showModal = false;
+    public $temperatureUnit = 'C';
+
 
     public function mount()
     {
+        $this->location = $this->getUserLocation();
+        if (!$this->location) return response()->json(['error' => 'Unable to determine location.'], 400);
 
-        $ip = request()->ip();
-        if ($ip === '127.0.0.1' || $ip === '::1') {
-            $this->location = ['lat' => 34.0522, 'lon' => -118.2437,'city'=>'Los Angeles']; // Default: Los Angeles, CA
-        } else {
-            $this->location = $this->getLocationFromIP($ip);
-        }
-        if (!$this->location) {
-            return response()->json(['error' => 'Unable to determine location.'], 400);
-        }
         $nearestStation = NOAAStation::getNearestStation($this->location['lat'], $this->location['lon']);
-
-
-        if (!$nearestStation) {
-            return response()->json(['error' => 'No station found.'], 404);
-        }
-
+        if (!$nearestStation) return response()->json(['error' => 'No station found.'], 404);
 
         $this->stations = NOAAStation::orderBy('name')->get();
         $this->selectedStationId = $nearestStation->id ?? $this->stations->first()->id;
@@ -53,16 +36,14 @@ class Calendar extends Component
     public function loadCalendar()
     {
         $this->loading = true;
-        $calendarService = new CustomCalendar(now()->year, $this->selectedStationId);
-        $this->calendarData = $calendarService->generateCalendar();
+        $this->calendarData = (new CustomCalendar(now()->year, $this->selectedStationId))->generateCalendar();
         $this->loading = false;
     }
-
 
     public function setStation($stationId)
     {
         $this->selectedStationId = $stationId;
-        $this->selectedStation = NOAAStation::find($this->selectedStationId);
+        $this->selectedStation = NOAAStation::find($stationId);
         $this->loadCalendar();
     }
 
@@ -72,15 +53,26 @@ class Calendar extends Component
         $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
             ->whereDate('date', $date)
             ->first();
-        if (!isset($this->modalData->sunrise) || !isset($this->modalData->sunset))
-        {
-            $this->storeSunriseSunsetData($date,$this->selectedStationId);
-            $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
-                ->whereDate('date', $date)
-                ->first();
-        }
-        $this->modalData->moon_phase=$this->getMoonPhase($date);
 
+        if ($this->modalData) {
+            if (!isset($this->modalData->sunrise, $this->modalData->sunset)) {
+                $this->storeSunriseSunsetData($date);
+                $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
+                    ->whereDate('date', $date)
+                    ->first();
+            }
+
+            $this->modalData->moon_phase = $this->getMoonPhase($date);
+
+            if (!$this->modalData->min_temp || $this->modalData->precipitation < $this->modalData->weather_code) {
+                $weatherData = $this->fetchWeather($date);
+                if ($weatherData) {
+                    $this->modalData->update($weatherData);
+                }
+            }
+        } else {
+            $this->modalData = null;
+        }
 
         $this->showModal = true;
     }
@@ -88,79 +80,79 @@ class Calendar extends Component
     public function closeModal()
     {
         $this->showModal = false;
-        $this->selectedDate = null;
-        $this->modalData = null;
+        $this->selectedDate = $this->modalData = null;
+        $this->dispatch('preserve-scroll');
+
     }
+
     public function render()
     {
-        return view('customcalendar::livewire.calendar', [
-            'calendarData' => $this->calendarData
-        ]);
+        return view('customcalendar::livewire.calendar', ['calendarData' => $this->calendarData]);
     }
+
     private function getMoonPhase($date)
     {
-        $synodicMonth = 29.53058867;
-        $knownNewMoon = Carbon::create(2000, 1, 6, 18, 14, 0);
-        $daysSinceNewMoon = $knownNewMoon->floatDiffInDays(Carbon::parse($date));
-
-        $moonPhases = [
-            'New Moon 🌑', 'Waxing Crescent 🌒', 'First Quarter 🌓',
-            'Waxing Gibbous 🌔', 'Full Moon 🌕', 'Waning Gibbous 🌖',
-            'Last Quarter 🌗', 'Waning Crescent 🌘'
-        ];
-
-        return $moonPhases[(int)round(($daysSinceNewMoon % $synodicMonth) / $synodicMonth * 8) % 8] ?? null;
+        $moonPhases = ['New Moon 🌑', 'Waxing Crescent 🌒', 'First Quarter 🌓', 'Waxing Gibbous 🌔', 'Full Moon 🌕', 'Waning Gibbous 🌖', 'Last Quarter 🌗', 'Waning Crescent 🌘'];
+        $daysSinceNewMoon = Carbon::create(2000, 1, 6, 18, 14, 0)->floatDiffInDays(Carbon::parse($date));
+        return $moonPhases[(int)round(($daysSinceNewMoon % 29.53058867) / 29.53058867 * 8) % 8] ?? null;
     }
 
-    private function storeSunriseSunsetData($date, $station_id)
+    private function storeSunriseSunsetData($date)
     {
         try {
-            $station=NOAAStation::find($station_id);
-            $latitude = $station->latitude;
-            $longitude = $station->longitude;
+            $station = $this->selectedStation;
+            $response = Http::get('https://api.sunrise-sunset.org/json', [
+                'lat' => $station->latitude, 'lng' => $station->longitude, 'formatted' => 0, 'date' => $date
+            ]);
 
-                $formattedDate = Carbon::parse($date)->format('Y-m-d');
+            if ($response->failed()) return;
 
-                $response = Http::get("https://api.sunrise-sunset.org/json", [
-                    'lat' => $latitude,
-                    'lng' => $longitude,
-                    'formatted' => 0,
-                    'date' => $formattedDate
-                ]);
+            $data = $response->json()['results'];
+            $tz = new CarbonTimeZone('America/Los_Angeles');
 
-                $data = $response->json();
-                // Convert UTC to PST
-                $sunriseUTC = Carbon::parse($data['results']['sunrise']);
-                $sunsetUTC = Carbon::parse($data['results']['sunset']);
-                $pstTimeZone = new CarbonTimeZone('America/Los_Angeles');
-
-                $sunrisePST = $sunriseUTC->setTimezone($pstTimeZone)->format('H:i');
-                $sunsetPST = $sunsetUTC->setTimezone($pstTimeZone)->format('H:i');
-
-                // Update or Create the record
-                NOAATideForecast::updateOrCreate(
-                    ['station_id' => $station->id, 'date' => $formattedDate],
-                    ['sunrise' => $sunrisePST, 'sunset' => $sunsetPST]
-                );
+            NOAATideForecast::updateOrCreate(
+                ['station_id' => $station->id, 'date' => $date],
+                ['sunrise' => Carbon::parse($data['sunrise'])->setTimezone($tz)->format('H:i'),
+                    'sunset' => Carbon::parse($data['sunset'])->setTimezone($tz)->format('H:i')]
+            );
         } catch (\Exception $e) {
-            \Log::error("Failed to fetch sunrise/sunset data: " . $e->getMessage());
+            \Log::error("Sunrise/Sunset data fetch failed: " . $e->getMessage());
         }
     }
-    private function getLocationFromIP($ip)
+
+    private function fetchWeather($date)
     {
-        $apiUrl = "https://ipapi.co/{$ip}/json/";
+        $url = "https://api.open-meteo.com/v1/forecast?latitude={$this->selectedStation->latitude}&longitude={$this->selectedStation->longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=auto&start_date={$date}&end_date={$date}";
+        $data = json_decode(file_get_contents($url), true)['daily'] ?? null;
+        return $data ? [
+            'max_temp' => $data['temperature_2m_max'][0] ?? null,
+            'min_temp' => $data['temperature_2m_min'][0] ?? null,
+            'precipitation' => $data['precipitation_sum'][0] ?? null,
+            'weather_code' => $data['weathercode'][0] ?? null
+        ] : null;
+    }
 
-        $response = Http::get($apiUrl);
+    private function getUserLocation()
+    {
+        $ip = request()->ip();
+        if (in_array($ip, ['127.0.0.1', '::1'])) return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
 
-        if ($response->failed()) {
-            return null;
-        }
+        $response = Http::get("https://ipapi.co/{$ip}/json");
+        if ($response->failed()) return null;
 
         $data = $response->json();
-        return [
-            'lat' => $data['latitude'] ?? null,
-            'lon' => $data['longitude'] ?? null,
-            'city' => $data['city'] ?? 'Unknown'
-        ];
+        return ['lat' => $data['latitude'] ?? null, 'lon' => $data['longitude'] ?? null, 'city' => $data['city'] ?? 'Unknown'];
+    }
+
+    public function getTemperature($temp)
+    {
+        if ($this->temperatureUnit === 'F') {
+            return round(($temp * 9 / 5) + 32, 1) . '°F';
+        }
+        return round($temp, 1) . '°C';
+    }
+    public function toggleTemperatureUnit()
+    {
+        $this->temperatureUnit = $this->temperatureUnit === 'C' ? 'F' : 'C';
     }
 }
