@@ -64,14 +64,24 @@ class Calendar extends Component
 
             $this->modalData->moon_phase = $this->getMoonPhase($date);
 
-            if (!$this->modalData->min_temp || $this->modalData->precipitation < $this->modalData->weather_code) {
+            if (!$this->modalData->min_temp || !$this->modalData->precipitation || !$this->modalData->weather_code) {
                 $weatherData = $this->fetchWeather($date);
                 if ($weatherData) {
                     $this->modalData->update($weatherData);
                 }
             }
+            if (!$this->modalData->low_tide_time || !$this->modalData->low_tide_level || !$this->modalData->high_tide_level || !$this->modalData->high_tide_time) {
+                $this->getTideData($date);
+            }
         } else {
-            $this->modalData = null;
+            $this->getTideData($date);
+            $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
+                ->whereDate('date', $date)
+                ->first();
+            $weatherData = $this->fetchWeather($date);
+            if ($weatherData) {
+                $this->modalData->update($weatherData);
+            }
         }
 
         $this->showModal = true;
@@ -135,13 +145,25 @@ class Calendar extends Component
     private function getUserLocation()
     {
         $ip = request()->ip();
-        if (in_array($ip, ['127.0.0.1', '::1'])) return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
+        if (in_array($ip, ['127.0.0.1', '::1'])) {
+            return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
+        }
 
-        $response = Http::get("https://ipapi.co/{$ip}/json");
-        if ($response->failed()) return null;
-
-        $data = $response->json();
-        return ['lat' => $data['latitude'] ?? null, 'lon' => $data['longitude'] ?? null, 'city' => $data['city'] ?? 'Unknown'];
+        try {
+            $response = Http::timeout(5)->get("https://ipapi.co/{$ip}/json");
+            if ($response->failed()) {
+                return null;
+            }
+            $data = $response->json();
+            return [
+                'lat' => $data['latitude'] ?? 0,
+                'lon' => $data['longitude'] ?? 0,
+                'city' => $data['city'] ?? 'Unknown'
+            ];
+        } catch (\Exception $e) {
+            \Log::error("Failed to fetch user location: " . $e->getMessage());
+            return null;
+        }
     }
 
     public function getTemperature($temp)
@@ -151,8 +173,84 @@ class Calendar extends Component
         }
         return round($temp, 1) . '°C';
     }
+
     public function toggleTemperatureUnit()
     {
         $this->temperatureUnit = $this->temperatureUnit === 'C' ? 'F' : 'C';
     }
+
+    public function getTideData($date)
+    {
+        $startDate = Carbon::parse($date);
+        $endDate = $startDate->copy();
+        $products = ['predictions'];
+        $noaaApiUrl = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter";
+        foreach ($products as $product) {
+                $response = Http::get($noaaApiUrl, [
+                    'begin_date' => $startDate->format('Ymd'),
+                    'end_date' => $endDate->format('Ymd'),
+                    'station' => $this->selectedStation->station_id,
+                    'product' => $product,
+                    'datum' => 'MLLW',
+                    'time_zone' => 'gmt',
+                    'units' => 'metric',
+                    'format' => 'json'
+                ]);
+
+                if ($response->failed()) {
+                    continue;
+                }
+
+                $data = $response->json();
+
+                if (!isset($data['predictions']) && !isset($data['data'])) {
+                    continue;
+                }
+
+                match ($product) {
+                    'predictions' => $this->storeTideData($data['predictions'], $this->selectedStationId)
+                };
+            }
+    }
+    private function storeTideData($predictions, $stationId)
+    {
+        $tideData = [];
+
+        foreach ($predictions as $tide) {
+            $date = Carbon::parse($tide['t'])->toDateString();
+            $time = Carbon::parse($tide['t'])->format('H:i');
+            $level = (float) $tide['v'];
+
+            if (!isset($tideData[$date])) {
+                $tideData[$date] = [
+                    'station_id' => $stationId,
+                    'year' => Carbon::parse($date)->year,
+                    'month' => Carbon::parse($date)->format('F'),
+                    'date' => $date,
+                    'high_tide_time' => null,
+                    'high_tide_level' => null,
+                    'low_tide_time' => null,
+                    'low_tide_level' => null,
+                ];
+            }
+
+            if (is_null($tideData[$date]['high_tide_level']) || $level > $tideData[$date]['high_tide_level']) {
+                $tideData[$date]['high_tide_time'] = $time;
+                $tideData[$date]['high_tide_level'] = $level;
+            }
+
+            if (is_null($tideData[$date]['low_tide_level']) || $level < $tideData[$date]['low_tide_level']) {
+                $tideData[$date]['low_tide_time'] = $time;
+                $tideData[$date]['low_tide_level'] = $level;
+            }
+        }
+
+        foreach ($tideData as $entry) {
+            NOAATideForecast::updateOrCreate(
+                ['station_id' => $stationId, 'date' => $entry['date']],
+                $entry
+            );
+        }
+    }
+
 }

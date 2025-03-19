@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -28,6 +29,12 @@ return new class extends Migration {
             $table->time('sunrise')->nullable();
             $table->time('sunset')->nullable();
             $table->string('moon_phase')->nullable(); // Moon phase name (e.g., Full Moon)
+
+            // Weather Data
+            $table->float('max_temp')->nullable();
+            $table->float('min_temp')->nullable();
+            $table->float('precipitation')->nullable();
+            $table->float('weather_code')->nullable();
 
 
             $table->integer('station_id');
