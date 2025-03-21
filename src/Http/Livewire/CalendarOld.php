@@ -10,14 +10,14 @@ use Tuna976\CustomCalendar\CustomCalendar;
 use Tuna976\CustomCalendar\Models\NOAAStation;
 use Tuna976\CustomCalendar\Models\NOAATideForecast;
 
-class Calendar extends Component
+class CalendarOld extends Component
 {
     protected $listeners = ['updateStation' => 'setStation'];
 
     public $stations, $selectedStationId, $selectedStation, $location, $calendarData;
     public $loading = false, $selectedDate, $modalData, $showModal = false;
     public $temperatureUnit = 'C';
-    public $currentsData;
+    public $stationProducts;
 
 
     public function mount()
@@ -51,6 +51,7 @@ class Calendar extends Component
     public function loadMoreData($date)
     {
         $this->selectedDate = $date;
+
         $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
             ->whereDate('date', $date)
             ->first();
@@ -71,6 +72,7 @@ class Calendar extends Component
                     $this->modalData->update($weatherData);
                 }
             }
+
             if (!$this->modalData->low_tide_time || !$this->modalData->low_tide_level || !$this->modalData->high_tide_level || !$this->modalData->high_tide_time) {
                 $this->getTideData($date);
             }
@@ -79,19 +81,20 @@ class Calendar extends Component
             $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
                 ->whereDate('date', $date)
                 ->first();
+
             $weatherData = $this->fetchWeather($date);
             if ($weatherData) {
                 $this->modalData->update($weatherData);
             }
         }
+
+        $station = NoaaStation::with('currentStation')->where('station_id', $this->selectedStationId)->first();
         $this->currentsData = null;
 
-        if ($this->selectedStation && $this->selectedStation->currentStation) {
-            $currents = $this->fetchCurrentsData($this->selectedStation->currentStation->station_id, 'today');
-            if (!empty($currents['current_predictions']['cp'])) {
-                $this->currentsData = collect($currents['current_predictions']['cp'])->take(6);
-            }
+        if ($station && $station->currentStation) {
+            $this->currentsData = $this->fetchCurrentsData($station->currentStation->station_id, $date);
         }
+
         $this->showModal = true;
     }
 
@@ -191,7 +194,15 @@ class Calendar extends Component
     {
         $startDate = Carbon::parse($date);
         $endDate = $startDate->copy();
-        $products = ['predictions'];
+        $products = [
+            'predictions',      // Ocean Tides
+            'currents',         // Ocean Currents
+            'salinity',         // Salinity
+            'water_temperature', // Water Temperature
+            'wave_direction',   // Wave Direction
+            'wave_height',      // Wave Height
+            'wave_period'       // Wave Period
+        ];
         $noaaApiUrl = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter";
         foreach ($products as $product) {
             $response = Http::get($noaaApiUrl, [
@@ -215,12 +226,45 @@ class Calendar extends Component
                 continue;
             }
 
-            match ($product) {
-                'predictions' => $this->storeTideData($data['predictions'], $this->selectedStationId)
-            };
-        }
-    }
 
+            foreach ($data['predictions'] ?? $data['data'] as $record) {
+                $date = Carbon::parse($record['t'])->toDateString();
+                $time = Carbon::parse($record['t'])->format('H:i');
+                $value = (float)$record['v'];
+
+                if (!isset($tideData[$date])) {
+                    $tideData[$date] = [
+                        'station_id' => $this->selectedStationId,
+                        'year' => Carbon::parse($date)->year,
+                        'month' => Carbon::parse($date)->format('F'),
+                        'date' => $date,
+                        'high_tide_time' => null,
+                        'high_tide_level' => null,
+                        'low_tide_time' => null,
+                        'low_tide_level' => null,
+                        'ocean_current' => null,
+                        'salinity' => null,
+                        'water_temperature' => null,
+                        'wave_direction' => null,
+                        'wave_height' => null,
+                        'wave_period' => null,
+                    ];
+                }
+
+                match ($product) {
+                    'predictions' =>$tideData[$date]['predictions']= $value,
+                    'currents' => $tideData[$date]['ocean_current'] = $value,
+                    'salinity' => $tideData[$date]['salinity'] = $value,
+                    'water_temperature' => $tideData[$date]['water_temperature'] = $value,
+                    'wave_direction' => $tideData[$date]['wave_direction'] = $value,
+                    'wave_height' => $tideData[$date]['wave_height'] = $value,
+                    'wave_period' => $tideData[$date]['wave_period'] = $value,
+                };
+            }
+            dd($tideData);
+        }
+
+    }
     private function storeTideData($predictions, $stationId)
     {
         $tideData = [];
@@ -228,7 +272,7 @@ class Calendar extends Component
         foreach ($predictions as $tide) {
             $date = Carbon::parse($tide['t'])->toDateString();
             $time = Carbon::parse($tide['t'])->format('H:i');
-            $level = (float)$tide['v'];
+            $level = (float) $tide['v'];
 
             if (!isset($tideData[$date])) {
                 $tideData[$date] = [
@@ -262,23 +306,138 @@ class Calendar extends Component
         }
     }
 
+    public function loadStationProducts()
+    {
+        if (!$this->selectedStation || empty($this->selectedStation->products)) {
+            return;
+        }
+
+        $productUrl = json_decode($this->selectedStation->products, true)['self'];
+
+        $response = Http::get($productUrl);
+
+        if ($response->failed()) {
+            return;
+        }
+
+        $data = $response->json();
+
+        if (!isset($data['products'])) {
+            return;
+        }
+
+        $this->stationProducts = collect($data['products'])->pluck('name')->toArray();
+    }
+    public function fetchNoaaData()
+    {
+        $productData = [];
+
+        // Decode the JSON column to get the products API URL
+        $productsInfo = json_decode($this->selectedStation->products, true);
+        $productsUrl = $productsInfo['self'] ?? null;
+
+        if (!$productsUrl) {
+            return;
+        }
+
+        // Step 1: Fetch available products from NOAA API
+        $response = Http::get($productsUrl);
+
+        if ($response->failed()) {
+            return;
+        }
+
+        $productsList = $response->json()['products'] ?? [];
+
+        // Step 2: Iterate through each product and fetch relevant data
+//        foreach ($productsList as $product) {
+//            $productName = $product['name'];
+//            $productKey = strtolower(str_replace(' ', '_', $productName)); // Normalize key
+
+            $noaaApiUrl = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
+
+            // Step 3: Fetch data for each product
+            $response = Http::get($noaaApiUrl, [
+                'begin_date' => now()->subDays(7)->format('Ymd'), // Example: Last 7 days
+                'end_date' => now()->format('Ymd'),
+                'station' => $this->selectedStation->station_id,
+                'product' => 'currents',
+                'datum' => 'MLLW',
+                'time_zone' => $this->selectedStation->timezone,
+                'units' => 'metric',
+                'format' => 'json'
+            ]);
+            dd($response->json(),$this->selectedStation->station_id);
+
+            if ($response->successful()) {
+                $data = $response->json();
+//                $productData[$productName] = $data['predictions'] ?? $data['data'] ?? [];
+            } else {
+//                $productData[$productName] = 'Error fetching data';
+            }
+//        }
+        dd($data);
+
+        $noaaApiUrl = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter";
+
+        // Fetch the products JSON from the station table
+        $productsJson = json_decode($this->selectedStation->products, true);
+        $productsUrl = $productsJson['self'] ?? null;
+
+        if (!$productsUrl) {
+            return; // Exit if no products URL is found
+        }
+
+        // Fetch the available products for the selected station
+        $response = Http::get($productsUrl);
+
+        if (!$response->successful()) {
+            return; // Exit if the API request fails
+        }
+
+        $availableProducts = $response->json();
+        $productList = collect($availableProducts['products'] ?? [])->pluck('value')->toArray();
+
+        $tideData = [];
+        dd($productList);
+
+        foreach ($productList as $product) {
+            $response = Http::get($noaaApiUrl, [
+                'begin_date' => now()->subDays(7)->format('Ymd'), // Fetch last 7 days of data
+                'end_date' => now()->format('Ymd'),
+                'station' => $this->selectedStation->station_id,
+                'product' => $product,
+                'datum' => 'MLLW',
+                'time_zone' => 'gmt',
+                'units' => 'metric',
+                'format' => 'json'
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $tideData[$product] = $data['predictions'] ?? $data['data'] ?? [];
+            }
+        }
+
+        dd($tideData); // Store data in a Livewire property
+    }
     public function fetchCurrentsData($stationId, $date)
     {
         $response = Http::get('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter', [
             'station' => $stationId,
             'product' => 'currents_predictions',
-            'date' => 'today',
+            'date' => Carbon::parse($date)->format('Ymd'),
             'datum' => 'MLLW',
             'units' => 'metric',
             'time_zone' => 'gmt',
             'interval' => 'h',
             'format' => 'json',
         ]);
+
         if ($response->successful()) {
             return $response->json();
         }
 
         return null;
     }
-
 }

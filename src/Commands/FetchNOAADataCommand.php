@@ -158,7 +158,6 @@ class FetchNOAADataCommand extends Command
                 } else {
                     $sunrisePST = Carbon::parse($data['results']['sunrise'])->format('H:i');
                     $sunsetPST = Carbon::parse($data['results']['sunset'])->format('H:i');
-                    dd($sunrisePST, $sunsetPST,$data,$stationId,$startDate,$endDate,$latitude,$longitude,$start);
                     NOAATideForecast::updateOrCreate(
                         ['station_id' => $stationId, 'date' => $start->toDateString()],
                         [

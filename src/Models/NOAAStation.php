@@ -20,4 +20,8 @@ class NOAAStation extends Model
             ->orderBy('distance')
             ->first();
     }
+    public function currentStation()
+    {
+        return $this->belongsTo(NoaaCurrentStation::class, 'noaa_current_station_id');
+    }
 }

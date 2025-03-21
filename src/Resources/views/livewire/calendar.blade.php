@@ -99,9 +99,9 @@
         </div>
     </div>
     @if($showModal)
-        <div class="modal fade show d-block" tabindex="-1" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false"
+        <div class="modal fade show d-block" tabindex="-1" role="dialog"
              style="background: rgba(0, 0, 0, 0.5);">
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-md-down" role="document">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-md-down" role="document">
                 <div class="modal-content border-0 shadow-lg rounded-4">
                     @if ($modalData)
                     <div class="modal-header bg-gradient text-white"
@@ -127,15 +127,71 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-info p-4 rounded-3 shadow-sm text-white text-center mb-4">
-                            <h5 class="fw-bold">🌊 Tide Information</h5>
-                            <p><strong>High Tide:</strong> {{ $modalData->high_tide_time ?? 'N/A' }}
-                                ({{ $modalData->high_tide_level ?? 'N/A' }}m)</p>
-                            <p><strong>Low Tide:</strong> {{ $modalData->low_tide_time ?? 'N/A' }}
-                                ({{ $modalData->low_tide_level ?? 'N/A' }}m)</p>
-                            <p><strong>Water Temperature:</strong> {{ $modalData->water_temperature ?? 'N/A' }}°C</p>
-                        </div>
+                        @php
+                            $themeColor = 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)'; // blue gradient
+                        @endphp
 
+                        <div class="row mb-4">
+                            @if (!empty($currentsData))
+                                <!-- Tide Information -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="p-4 rounded-4 shadow-sm text-white text-center h-100"
+                                         style="background: {{ $themeColor }};">
+                                        <h5 class="fw-bold mb-3">🌊 Tide Information</h5>
+                                        <p class="mb-2"><strong>High Tide:</strong> {{ $modalData->high_tide_time ?? 'N/A' }}
+                                            ({{ $modalData->high_tide_level ?? 'N/A' }}m)</p>
+                                        <p class="mb-2"><strong>Low Tide:</strong> {{ $modalData->low_tide_time ?? 'N/A' }}
+                                            ({{ $modalData->low_tide_level ?? 'N/A' }}m)</p>
+                                        <p class="mb-0"><strong>Water Temperature:</strong> {{ $modalData->water_temperature ?? 'N/A' }}°C</p>
+                                    </div>
+                                </div>
+
+                                <!-- Current Predictions -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="p-4 rounded-4 shadow-sm text-white h-100"
+                                         style="background: {{ $themeColor }};">
+                                        <h5 class="fw-bold text-center mb-3">🌊 Current Predictions</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-borderless table-sm text-white text-center align-middle mb-0">
+                                                <thead>
+                                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.4);">
+                                                    <th>Time</th>
+                                                    <th>Velocity<br><small>(cm/s)</small></th>
+                                                    <th>Depth<br><small>(m)</small></th>
+                                                    <th>Flood Dir<br><small>(°)</small></th>
+                                                    <th>Ebb Dir<br><small>(°)</small></th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                @foreach ($currentsData as $prediction)
+                                                    <tr>
+                                                        <td>{{ \Carbon\Carbon::parse($prediction['Time'])->format('M d, Y h:i A') }}</td>
+                                                        <td>{{ number_format($prediction['Velocity_Major'], 1) }}</td>
+                                                        <td>{{ number_format($prediction['Depth'], 1) }}</td>
+                                                        <td>{{ $prediction['meanFloodDir'] }}°</td>
+                                                        <td>{{ $prediction['meanEbbDir'] }}°</td>
+                                                    </tr>
+                                                @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <!-- Only Tide Information Centered -->
+                                <div class="col-md-8 offset-md-2">
+                                    <div class="p-4 rounded-4 shadow-sm text-white text-center mb-4"
+                                         style="background: {{ $themeColor }};">
+                                        <h5 class="fw-bold mb-3">🌊 Tide Information</h5>
+                                        <p class="mb-2"><strong>High Tide:</strong> {{ $modalData->high_tide_time ?? 'N/A' }}
+                                            ({{ $modalData->high_tide_level ?? 'N/A' }}m)</p>
+                                        <p class="mb-2"><strong>Low Tide:</strong> {{ $modalData->low_tide_time ?? 'N/A' }}
+                                            ({{ $modalData->low_tide_level ?? 'N/A' }}m)</p>
+                                        <p class="mb-0"><strong>Water Temperature:</strong> {{ $modalData->water_temperature ?? 'N/A' }}°C</p>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
                         <div class="d-flex justify-content-end mb-3">
                             <button class="btn btn-outline-primary rounded-pill" wire:click="toggleTemperatureUnit">
                                 Toggle to {{ $temperatureUnit === 'C' ? '°F' : '°C' }}
@@ -151,7 +207,9 @@
                             <p><strong>💨 Wind Speed:</strong> {{ $modalData->wind_speed ?? 'N/A' }} m/s</p>
                             <p><strong>🧭 Wind Direction:</strong> {{ $modalData->weather->wind_direction ?? 'N/A' }}</p>
                         </div>
+
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-dark w-100 rounded-pill" wire:click="closeModal">Close</button>
                     </div>

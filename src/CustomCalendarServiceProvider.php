@@ -4,10 +4,13 @@ namespace Tuna976\CustomCalendar;
 
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Tuna976\CustomCalendar\Commands\FetchNoaaCurrents;
+use Tuna976\CustomCalendar\Commands\FetchNOAACurrentStations;
 use Tuna976\CustomCalendar\Commands\FetchNOAADataCommand;
 use Tuna976\CustomCalendar\Commands\FetchNOAAStationsCommand;
 use Tuna976\CustomCalendar\Commands\FetchTideDataCommand;
 use Tuna976\CustomCalendar\Commands\ImportDataCommand;
+use Tuna976\CustomCalendar\Commands\MatchNoaaCurrentStations;
 use Tuna976\CustomCalendar\Http\Livewire\Calendar;
 
 class CustomCalendarServiceProvider extends ServiceProvider
@@ -37,7 +40,7 @@ class CustomCalendarServiceProvider extends ServiceProvider
         $this->loadControllers();
 
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
-        $this->commands([ImportDataCommand::class,FetchNOAADataCommand::class,FetchNOAAStationsCommand::class]);
+        $this->commands([ImportDataCommand::class,FetchNOAADataCommand::class,FetchNOAAStationsCommand::class,FetchNOAACurrentStations::class,FetchNoaaCurrents::class,MatchNoaaCurrentStations::class]);
     }
 
     public function register()
