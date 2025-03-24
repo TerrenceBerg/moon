@@ -85,11 +85,13 @@ class Calendar extends Component
             }
         }
         $this->currentsData = null;
-
         if ($this->selectedStation && $this->selectedStation->currentStation) {
-            $currents = $this->fetchCurrentsData($this->selectedStation->currentStation->station_id, 'today');
-            if (!empty($currents['current_predictions']['cp'])) {
-                $this->currentsData = collect($currents['current_predictions']['cp'])->take(6);
+            $isToday = Carbon::parse($date)->isToday();
+            if ($isToday) {
+                $currents = $this->fetchCurrentsData($this->selectedStation->currentStation->station_id, 'today');
+                if (!empty($currents['current_predictions']['cp'])) {
+                    $this->currentsData = collect($currents['current_predictions']['cp'])->take(6);
+                }
             }
         }
         $this->showModal = true;
@@ -264,16 +266,18 @@ class Calendar extends Component
 
     public function fetchCurrentsData($stationId, $date)
     {
+
         $response = Http::get('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter', [
             'station' => $stationId,
             'product' => 'currents_predictions',
-            'date' => 'today',
+            'date' => $date,
             'datum' => 'MLLW',
             'units' => 'metric',
             'time_zone' => 'gmt',
             'interval' => 'h',
             'format' => 'json',
         ]);
+
         if ($response->successful()) {
             return $response->json();
         }
