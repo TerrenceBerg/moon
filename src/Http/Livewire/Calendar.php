@@ -277,6 +277,7 @@ class Calendar extends Component
             'interval' => 'h',
             'format' => 'json',
         ]);
+        dd($response->json());
 
         if ($response->successful()) {
             return $response->json();

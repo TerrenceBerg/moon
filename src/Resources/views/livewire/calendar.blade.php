@@ -31,15 +31,14 @@
                 @foreach ($calendarData as $year => $data)
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="heading-{{ $year }}">
-                            <button class="accordion-button {{ $loop->first ? '' : 'collapsed' }}" type="button"
+                            <button class="accordion-button " type="button"
                                     data-bs-toggle="collapse" data-bs-target="#collapse-{{ $year }}"
-                                    aria-expanded="{{ $loop->first ? 'true' : 'false' }}"
                                     aria-controls="collapse-{{ $year }}">
                                 Year {{ $year }}
                             </button>
                         </h2>
                         <div id="collapse-{{ $year }}"
-                             class="accordion-collapse collapse {{ $loop->first ? 'show' : '' }}"
+                             class="accordion-collapse collapse "
                              aria-labelledby="heading-{{ $year }}" data-bs-parent="#yearAccordion">
                             <div class="accordion-body">
                                 <div class="row">
@@ -61,7 +60,7 @@
 
                                                         <!-- Desktop View (Hides on Mobile) -->
                                                         <div class="d-none d-md-block">
-                                                            <span class="gregorian-date">{{ $day['gregorian_date'] }}</span>
+                                                            <span class="gregorian-date" data-date="{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('Y-m-d') }}">{{ $day['gregorian_date'] }}</span>
                                                             <span class="date-info">{{ $day['julian_day'] }}</span>
 
                                                             <span class="date-info">{{ $day['moon_phase'] }}</span>
@@ -343,55 +342,67 @@
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            setTimeout(() => {
-                const todayElement = document.querySelector('.calendar-day[style*="background-color: lightgreen"]');
-                if (todayElement) {
-                    todayElement.scrollIntoView({behavior: 'smooth', block: 'center'});
-                }
-            }, 500);
-        });
-    </script>
-
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            let stationSelect = $('#stationSelect');
+            load_view();
 
-            // Initialize Select2
+            let stationSelect = $('#stationSelect');
             stationSelect.select2();
 
-            // On change, dispatch event to Livewire
             stationSelect.on('change', function () {
-                let selectedStation = parseInt($(this).val(), 10); // Convert to integer
-
+                let selectedStation = parseInt($(this).val(), 10);
                 if (!isNaN(selectedStation)) {
-                    $('#loader').show(); // Show loader
-
-                    Livewire.dispatch('updateStation', { stationId: selectedStation }); // Send as object
+                    $('#loader').show();
+                    Livewire.dispatch('updateStation', { stationId: selectedStation });
                     console.log("Livewire Event Dispatched:", selectedStation);
                 }
             });
 
-            // Re-initialize Select2 after Livewire updates
-            Livewire.hook('message.processed', () => {
-                stationSelect.select2();
-                $('#loader').hide(); // Hide loader when update is done
-            });
-        });
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
             Livewire.on('preserve-scroll', () => {
-                let scrollPosition = window.scrollY || document.documentElement.scrollTop;
-                Livewire.hook('message.processed', (message, component) => {
-                    window.scrollTo(0, scrollPosition);
-                });
+                load_view();
+            });
+
+            Livewire.hook('message.processed', () => {
+                $('#stationSelect').select2();
+                $('#loader').hide();
             });
         });
+
+        function load_view() {
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+
+            const dateCell = document.querySelector(`[data-date="${todayStr}"]`);
+
+            if (dateCell) {
+                const collapseEl = dateCell.closest('.accordion-collapse');
+                const accordionItem = collapseEl.closest('.accordion-item');
+                const accordionButton = accordionItem.querySelector('.accordion-button');
+
+                document.querySelectorAll('.accordion-collapse').forEach(el => el.classList.remove('show'));
+                document.querySelectorAll('.accordion-button').forEach(btn => {
+                    btn.classList.add('collapsed');
+                    btn.setAttribute('aria-expanded', 'false');
+                });
+
+                if (collapseEl) {
+                    collapseEl.classList.add('show');
+                }
+                if (accordionButton) {
+                    accordionButton.classList.remove('collapsed');
+                    accordionButton.setAttribute('aria-expanded', 'true');
+                }
+            }
+
+            setTimeout(() => {
+                const todayElement = document.querySelector('.calendar-day[style*="background-color: lightgreen"]');
+                if (todayElement) {
+                    todayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 500);
+        }
     </script>
 </div>
 
