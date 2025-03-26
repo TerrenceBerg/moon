@@ -112,20 +112,24 @@
                         <button type="button" class="btn-close" wire:click.prevent="closeModal"></button>
                     </div>
                     <div class="modal-body p-4">
-                        <div class="text-center mb-4">
+                        <div class="card rounded border border-dark text-center m-4 p-3">
+                            <h4><i class="bi bi-moon-stars-fill"></i> Moon Phase</h4>
                             <h5 class="text-primary">{{ $modalData->moon_phase ?? 'N/A' }}</h5>
                         </div>
-                        <div class="row text-center mb-4">
-                            <div class="col-md-6">
-                                <div class="bg-light p-3 rounded-3 shadow-sm">
-                                    <h6 class="text-warning">☀️ Sunrise</h6>
-                                    <p class="mb-0 fw-bold">{{ \Carbon\Carbon::parse($modalData->sunrise)->format('h:i:s a') ?? 'N/A' }}</p>
+                        <div class="container card rounded border border-dark mb-3 p-3">
+                            <h4 class="text-center"><i class="bi bi-moon-stars-fill"></i> Sun Phase</h4>
+                            <div class="row text-center mb-4">
+                                <div class="col-md-6">
+                                    <div class="bg-light p-3 rounded-3 shadow-sm border border-dark">
+                                        <span class="text-warning"><i class="bi bi-sunrise"></i> Sunrise</span>
+                                        <p class="mb-0 fw-bold">{{ \Carbon\Carbon::parse($modalData->sunrise)->format('h:i:s a') ?? 'N/A' }}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="bg-light p-3 rounded-3 shadow-sm">
-                                    <h6 class="text-danger">🌅 Sunset</h6>
-                                    <p class="mb-0 fw-bold">{{\Carbon\Carbon::parse($modalData->sunset)->format('h:i:s a')?? 'N/A' }}</p>
+                                <div class="col-md-6">
+                                    <div class="bg-light p-3 rounded-3 shadow-sm border border-dark">
+                                        <h6 class="text-danger"><i class="bi bi-sunset"></i> Sunset</h6>
+                                        <p class="mb-0 fw-bold">{{\Carbon\Carbon::parse($modalData->sunset)->format('h:i:s a')?? 'N/A' }}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -137,7 +141,7 @@
                             @if (!empty($currentsData))
                                 <!-- Tide Information -->
                                 <div class="col-md-6 mb-4">
-                                    <div class="p-4 rounded-4 shadow-sm text-white text-center h-100"
+                                    <div class="p-4 rounded-4 shadow-sm text-white text-center h-100 border border-dark"
                                          style="background: {{ $themeColor }};">
                                         <h5 class="fw-bold mb-3">🌊 Tide Information</h5>
                                         <p class="mb-2"><strong>High Tide:</strong> {{ $modalData->high_tide_time ?? 'N/A' }}
@@ -194,14 +198,12 @@
                                 </div>
                             @endif
                         </div>
-                        <div class="d-flex justify-content-end mb-3">
-                            <button class="btn btn-outline-primary rounded-pill" wire:click="toggleTemperatureUnit">
-                                Toggle to {{ $temperatureUnit === 'C' ? '°F' : '°C' }}
-                            </button>
-                        </div>
 
                         <!-- Weather Section -->
-                        <div class="bg-light p-4 rounded-3 shadow-sm text-center">
+                        <div class="container bg-light p-4 rounded-3 shadow-sm text-center border border-dark">
+                            <button class="btn btn-outline-primary rounded-pill float-end" wire:click="toggleTemperatureUnit">
+                                Toggle to {{ $temperatureUnit === 'C' ? '°F' : '°C' }}
+                            </button>
                             <h5 class="text-primary fw-bold">🌤️ Weather Data</h5>
                             <p><strong>🌡 Max Temperature:</strong> {{ $this->getTemperature($modalData->max_temp ?? 0) }}</p>
                             <p><strong>🌡 Min Temperature:</strong> {{ $this->getTemperature($modalData->min_temp ?? 0) }}</p>
