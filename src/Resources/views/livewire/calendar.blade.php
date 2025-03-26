@@ -61,7 +61,7 @@
                                                          style="{{ $day['is_today'] ? 'background-color: lightgreen; color: black; border: 2px solid green;' : '' }}">
                                                         <!-- Desktop View (Hides on Mobile) -->
                                                         <div class="d-none d-md-block">
-                                                            <span class="date-info">{{ $month['name'] }}<br>Day </span>
+                                                            <span class="date-info">{{ $month['name'] }}<br>Day {{++$i}}</span>
 
                                                             <span class="date-info">{{ $day['moon_phase'] }}</span><br>
                                                             <span class="gregorian-date" data-date="{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('Y-m-d') }}">Gregorian Date<br>{{ $day['gregorian_date'] }}</span><br><br>
