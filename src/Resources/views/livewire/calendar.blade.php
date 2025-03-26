@@ -66,7 +66,23 @@
                                                             </span><br>
                                                             <span class="gregorian-date" data-date="{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('Y-m-d') }}">Gregorian Date<br>{{ $day['gregorian_date'] }}</span><br><br>
                                                             <span class="date-info">Julian Day {{ $day['julian_day'] }}</span><br>
-
+                                                            @if(isset($day['solunar_rating']))
+                                                                @php
+                                                                    $rating = $day['solunar_rating'];
+                                                                @endphp
+                                                                <div class="mt-2">
+                                                                    <small>Solunar Rating:</small><br>
+                                                                    @for ($star = 1; $star <= 4; $star++)
+                                                                        @if ($rating >= $star)
+                                                                            <i class="bi bi-star-fill text-warning"></i>
+                                                                        @elseif ($rating >= $star - 0.5)
+                                                                            <i class="bi bi-star-half text-warning"></i>
+                                                                        @else
+                                                                            <i class="bi bi-star text-muted"></i>
+                                                                        @endif
+                                                                    @endfor
+                                                                </div>
+                                                            @endif
                                                             @php $tide = $day['tide_data']; @endphp
                                                             @if ($tide)
                                                                 <span><strong>Tides</strong></span>

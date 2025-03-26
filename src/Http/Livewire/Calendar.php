@@ -4,6 +4,8 @@ namespace Tuna976\CustomCalendar\Http\Livewire;
 
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 use Tuna976\CustomCalendar\CustomCalendar;
@@ -401,6 +403,35 @@ class Calendar extends Component
             }
         }
         $this->stationMoreData = $results;
+    }
+
+    public function getMonthlySolunarRatings($latitude, $longitude, $month, $year, $offset = -4)
+    {
+        $cacheKey = "solunar_{$latitude}_{$longitude}_{$year}_{$month}_offset{$offset}";
+
+        return Cache::remember($cacheKey, now()->addDays(1), function () use ($latitude, $longitude, $month, $year, $offset) {
+            $client = new Client();
+            $start = Carbon::createFromDate($year, $month, 1);
+            $end = $start->copy()->endOfMonth();
+
+            $ratings = [];
+
+            for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+                $formattedDate = $date->format('Ymd');
+                $url = "https://api.solunar.org/solunar/{$latitude},{$longitude},{$formattedDate},{$offset}";
+
+                try {
+                    $response = $client->get($url);
+                    $data = json_decode($response->getBody(), true);
+
+                    $ratings[$date->format('Y-m-d')] = $data['rating'] ?? null;
+                } catch (\Exception $e) {
+                    $ratings[$date->format('Y-m-d')] = null;
+                }
+            }
+
+            return $ratings;
+        });
     }
 
 
