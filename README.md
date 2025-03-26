@@ -51,11 +51,7 @@ A standalone Laravel package for integrating a **custom 13-month, 28-day calenda
 ### **1. Install via Composer**
 ```sh
 composer require 976-tuna/custom-calendar
-
-
----
-
-## **📊 Data Import & NOAA Fetch Commands**
+```
 
 ### **2. Import Solar Events Data**
 ```sh

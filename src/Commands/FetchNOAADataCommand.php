@@ -114,10 +114,24 @@ class FetchNOAADataCommand extends Command
     {
         foreach ($data as $record) {
             $date = Carbon::parse($record['t'])->toDateString();
+            $year = null;
+            try {
+                $year = $date ? Carbon::parse($date)->year : null;
+            } catch (\Exception $e) {
+
+            }
+
+            $data = [
+                'water_temperature' => (float) $record['v'],
+            ];
+
+            if ($year) {
+                $data['year'] = $year;
+            }
+
             NOAATideForecast::updateOrCreate(
                 ['station_id' => $stationId, 'date' => $date],
-                ['water_temperature' => (float) $record['v']],
-                ['year' => Carbon::parse($date)->year]
+                $data
             );
         }
     }

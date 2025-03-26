@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('noaa_tide_forecasts', function (Blueprint $table) {
             $table->id();
             $table->integer('year');
-            $table->string('month');
+            $table->string('month')->nullable();
             $table->date('date');
 
             // Tide Data
