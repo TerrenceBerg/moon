@@ -20,7 +20,7 @@ class Calendar extends Component
     public $stations, $selectedStationId, $selectedStation, $location, $calendarData;
     public $loading = false, $selectedDate, $modalData, $showModal = false;
     public $temperatureUnit = 'C';
-    public $currentsData,$stationMoreData;
+    public $currentsData,$stationMoreData,$solunarData;
 
 
     public function mount()
@@ -114,7 +114,7 @@ class Calendar extends Component
                     Cache::put($cacheKey, $solunarData, now()->addDays(2));
                 }
             }
-            $this->modalData->solunar = $solunarData;
+            $this->solunarData = $solunarData;
         }
 
         $this->showModal = true;

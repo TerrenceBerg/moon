@@ -129,7 +129,7 @@
                             <button type="button" class="btn-close" wire:click.prevent="closeModal"></button>
                         </div>
                         <div class="modal-body p-4">
-                                @if($modalData?->solunar)
+                                @if($solunarData)
                                     <div class="container card rounded border-dark mb-3 p-3">
                                         <h5 class="fw-bold mb-3 border-bottom pb-2">🌤️ Solunar Summary — {{ \Carbon\Carbon::parse($selectedDate)->format('M j, Y') }}</h5>
                                         <div class="row text-sm text-muted">
@@ -138,9 +138,9 @@
                                             <div class="col-md-4 mb-2">
                                                 <h6 class="text-dark mb-1">🌞 Sun</h6>
                                                 <ul class="list-unstyled small mb-0">
-                                                    <li><strong>Rise:</strong> {{ $modalData->solunar['sunRise'] }}</li>
-                                                    <li><strong>Transit:</strong> {{ $modalData->solunar['sunTransit'] }}</li>
-                                                    <li><strong>Set:</strong> {{ $modalData->solunar['sunSet'] }}</li>
+                                                    <li><strong>Rise:</strong> {{ $solunarData['sunRise'] }}</li>
+                                                    <li><strong>Transit:</strong> {{ $solunarData['sunTransit'] }}</li>
+                                                    <li><strong>Set:</strong> {{ $solunarData['sunSet'] }}</li>
                                                 </ul>
                                             </div>
 
@@ -148,11 +148,11 @@
                                             <div class="col-md-4 mb-2">
                                                 <h6 class="text-dark mb-1">🌙 Moon</h6>
                                                 <ul class="list-unstyled small mb-0">
-                                                    <li><strong>Rise:</strong> {{ $modalData->solunar['moonRise'] }}</li>
-                                                    <li><strong>Transit:</strong> {{ $modalData->solunar['moonTransit'] }}</li>
-                                                    <li><strong>Set:</strong> {{ $modalData->solunar['moonSet'] }}</li>
-                                                    <li><strong>Phase:</strong> {{ $modalData->solunar['moonPhase'] }}</li>
-                                                    <li><strong>Illumination:</strong> {{ round($modalData->solunar['moonIllumination'] * 100) }}%</li>
+                                                    <li><strong>Rise:</strong> {{ $solunarData['moonRise'] }}</li>
+                                                    <li><strong>Transit:</strong> {{ $solunarData['moonTransit'] }}</li>
+                                                    <li><strong>Set:</strong> {{ $solunarData['moonSet'] }}</li>
+                                                    <li><strong>Phase:</strong> {{ $solunarData['moonPhase'] }}</li>
+                                                    <li><strong>Illumination:</strong> {{ round($solunarData['moonIllumination'] * 100) }}%</li>
                                                 </ul>
                                             </div>
 
@@ -160,15 +160,15 @@
                                             <div class="col-md-4 mb-2">
                                                 <h6 class="text-dark mb-1">🎯 Ratings</h6>
                                                 <ul class="list-unstyled small mb-2">
-                                                    <li><strong>Day:</strong> {{ $modalData->solunar['dayRating'] }}</li>
-                                                    <li><strong>Calc:</strong> {{ $modalData->solunar['calculatedRating'] }}</li>
+                                                    <li><strong>Day:</strong> {{ $solunarData['dayRating'] }}</li>
+                                                    <li><strong>Calc:</strong> {{ $solunarData['calculatedRating'] }}</li>
                                                 </ul>
                                                 <h6 class="text-dark mb-1">🎣 Activity</h6>
                                                 <ul class="list-unstyled small mb-0">
-                                                    <li><strong>Minor 1:</strong> {{ $modalData->solunar['minor1Start'] }} – {{ $modalData->solunar['minor1Stop'] }}</li>
-                                                    <li><strong>Minor 2:</strong> {{ $modalData->solunar['minor2Start'] }} – {{ $modalData->solunar['minor2Stop'] }}</li>
-                                                    <li><strong>Major 1:</strong> {{ $modalData->solunar['major1Start'] }} – {{ $modalData->solunar['major1Stop'] }}</li>
-                                                    <li><strong>Major 2:</strong> {{ $modalData->solunar['major2Start'] }} – {{ $modalData->solunar['major2Stop'] }}</li>
+                                                    <li><strong>Minor 1:</strong> {{ $solunarData['minor1Start'] }} – {{ $solunarData['minor1Stop'] }}</li>
+                                                    <li><strong>Minor 2:</strong> {{ $solunarData['minor2Start'] }} – {{ $solunarData['minor2Stop'] }}</li>
+                                                    <li><strong>Major 1:</strong> {{ $solunarData['major1Start'] }} – {{ $solunarData['major1Stop'] }}</li>
+                                                    <li><strong>Major 2:</strong> {{ $solunarData['major2Start'] }} – {{ $solunarData['major2Stop'] }}</li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -196,7 +196,7 @@
 
                                             {{-- Hourly Rating Blocks --}}
                                             <div class="d-flex flex-wrap">
-                                                @foreach($modalData->solunar['hourlyRating'] as $hour => $rating)
+                                                @foreach($solunarData['hourlyRating'] as $hour => $rating)
                                                     @php
                                                         $color = match(true) {
                                                             $rating >= 40 => 'bg-success text-white',
