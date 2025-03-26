@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('noaa_current_stations', function (Blueprint $table) {
             $table->id();
-            $table->string('station_id')->unique();
+            $table->string('station_id');
             $table->string('name');
             $table->decimal('latitude', 10, 6);
             $table->decimal('longitude', 10, 6);
