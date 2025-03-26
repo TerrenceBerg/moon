@@ -60,13 +60,16 @@
                                                         <!-- Desktop View (Hides on Mobile) -->
                                                         <div class="d-none d-md-block">
                                                             <span class="date-info">{{ $month['name'] }}<br>Day {{++$i}}</span>
-
+                                                            <br>
                                                             <span class="date-info">{{ $day['moon_phase'] }}</span><br>
+                                                            <span class="date-info">Solunar index Day Rating
+                                                            </span><br>
                                                             <span class="gregorian-date" data-date="{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('Y-m-d') }}">Gregorian Date<br>{{ $day['gregorian_date'] }}</span><br><br>
                                                             <span class="date-info">Julian Day {{ $day['julian_day'] }}</span><br>
 
                                                             @php $tide = $day['tide_data']; @endphp
                                                             @if ($tide)
+                                                                <span><strong>Tides</strong></span>
                                                                 <span class="date-info">🌊 High: {{ $tide['high_tide_time'] }} ({{ $tide['high_tide_level'] }}m)</span>
                                                                 <span class="date-info">🌊 Low: {{ $tide['low_tide_time'] }} ({{ $tide['low_tide_level'] }}m)</span>
                                                             @endif
