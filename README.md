@@ -66,7 +66,7 @@ This will **import solar events** (equinoxes and solstices) into the database.
 
 ### **3. Fetch & Store NOAA Stations**
 ```sh
-php artisan noaa:stations
+php artisan noaa:fetch-stations
 php artisan fetch:noaa-current-stations
 php artisan match:noaa-currents
 ```
