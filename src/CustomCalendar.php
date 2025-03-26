@@ -3,6 +3,8 @@
 namespace Tuna976\CustomCalendar;
 
 use Carbon\Carbon;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Cache;
 use Tuna976\CustomCalendar\Models\NOAAStation;
 use Tuna976\CustomCalendar\Models\SolarEvent;
 use Tuna976\CustomCalendar\Models\NOAATideForecast;
@@ -20,6 +22,7 @@ class CustomCalendar
 
     public function generateCalendar($year = null, $stationId = null)
     {
+        ini_set('max_execution_time', 100000);
         $currentYear = $year ?? Carbon::now()->year;
         $stationId = $stationId ?? $this->stationId;
         $station = NOAAStation::where('id', $stationId)->firstOrFail();
@@ -50,6 +53,8 @@ class CustomCalendar
                     $dayDate = $monthStart->copy()->addDays($i)->toDateString();
                     $dayTideData = $noaaData[$dayDate][0] ?? null;
 
+                    $solunarData = $this->getSolunarData($station->latitude, $station->longitude, $dayDate);
+                    $solunarRating = $solunarData['calculatedRating'] ?? null;
                     $monthDays[] = [
                         'date' => $dayDate,
                         'day_of_week' => Carbon::parse($dayDate)->format('l'),
@@ -58,6 +63,7 @@ class CustomCalendar
                         'moon_phase' => $this->getMoonPhase($dayDate),
                         'is_today' => Carbon::parse($dayDate)->isToday(),
                         'tide_data' => $dayTideData ? $this->formatTideData($dayTideData) : null,
+                        'solunar_rating' => $solunarRating,
                     ];
                 }
 
@@ -141,5 +147,47 @@ class CustomCalendar
             'sunrise' => $data->sunrise,
             'sunset' => $data->sunset
         ];
+    }
+
+
+
+    public function getSolunarData($lat, $lng, $date, $offset = -4)
+    {
+        $cacheKey = "solunar_rating_{$lat}_{$lng}_{$date}";
+
+        // Check cache
+        $cachedData = Cache::get($cacheKey);
+        if ($cachedData) {
+            return $cachedData;
+        }
+        try {
+            $formattedDate = Carbon::parse($date)->format('Ymd');
+            $url = "https://api.solunar.org/solunar/{$lat},{$lng},{$formattedDate},{$offset}";
+            $client = new Client();
+            $response = $client->get($url);
+            $data = json_decode($response->getBody(), true);
+
+            if (!$data || !isset($data['hourlyRating'])) {
+                return null;
+            }
+            $hourly = $data['hourlyRating'];
+            $totalHours = count($hourly);
+            $totalRating = array_sum($hourly);
+            $maxPossible = $totalHours * 100;
+
+            $normalized = $maxPossible > 0 ? ($totalRating / $maxPossible) : 0;
+
+            $starRating = round($normalized * 4, 1);
+
+            $data['calculatedRating'] = $starRating;
+
+
+            Cache::put($cacheKey, $data, now()->addDays(30));
+
+            return $data;
+
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }
