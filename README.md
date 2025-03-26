@@ -64,17 +64,19 @@ php artisan calendar-data:import
 ```
 This will **import solar events** (equinoxes and solstices) into the database.
 
-### **3. Fetch & Store NOAA Data (Tides, Wind, Moon Phases)**
+### **3. Fetch & Store NOAA Stations**
+```sh
+php artisan noaa:stations
+php artisan fetch:noaa-current-stations
+php artisan match:noaa-currents
+```
+### **4. Fetch & Store NOAA Data (Tides, Wind, Moon Phases)**
 ```sh
 php artisan noaa:fetch {days=7}
 ```
 This fetches **NOAA tide and weather data** for the **next 7 days** (or a custom number of days).
 
-### **4. Fetch & Store NOAA Stations**
-```sh
-php artisan noaa:stations
-php artisan fetch:noaa-current-stations
-php artisan match:noaa-currents
+
 ```
 This retrieves **all NOAA stations** and their **available data products**.
 
