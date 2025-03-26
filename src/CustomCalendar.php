@@ -154,7 +154,6 @@ class CustomCalendar
     public function getSolunarData($lat, $lng, $date, $offset = -4)
     {
         $cacheKey = "solunar_rating_{$lat}_{$lng}_{$date}";
-
         // Check cache
         $cachedData = Cache::get($cacheKey);
         if ($cachedData) {
@@ -166,7 +165,6 @@ class CustomCalendar
             $client = new Client();
             $response = $client->get($url);
             $data = json_decode($response->getBody(), true);
-
             if (!$data || !isset($data['hourlyRating'])) {
                 return null;
             }
@@ -174,14 +172,9 @@ class CustomCalendar
             $totalHours = count($hourly);
             $totalRating = array_sum($hourly);
             $maxPossible = $totalHours * 100;
-
             $normalized = $maxPossible > 0 ? ($totalRating / $maxPossible) : 0;
-
             $starRating = round($normalized * 4, 1);
-
             $data['calculatedRating'] = $starRating;
-
-
             Cache::put($cacheKey, $data, now()->addDays(30));
 
             return $data;

@@ -87,19 +87,36 @@ class Calendar extends Component
                 $this->modalData->update($weatherData);
             }
         }
-        $this->currentsData = null;
-        $this->fetchAllNoaaProducts($this->selectedStation->station_id, $date);
-        if ($this->selectedStation && $this->selectedStation->currentStation) {
-//            $this->getStationData($this->selectedStation->station_id, $date);
+//        $this->currentsData = null;
+//        $this->fetchAllNoaaProducts($this->selectedStation->station_id, $date);
+//        if ($this->selectedStation && $this->selectedStation->currentStation) {
+////            $this->getStationData($this->selectedStation->station_id, $date);
+//
+//            $isToday = Carbon::parse($date)->isToday();
+//            if ($isToday) {
+//                $currents = $this->fetchCurrentsData($this->selectedStation->currentStation->station_id, 'today');
+//                if (!empty($currents['current_predictions']['cp'])) {
+//                    $this->currentsData = collect($currents['current_predictions']['cp'])->take(6);
+//                }
+//            }
+//        }
 
-            $isToday = Carbon::parse($date)->isToday();
-            if ($isToday) {
-                $currents = $this->fetchCurrentsData($this->selectedStation->currentStation->station_id, 'today');
-                if (!empty($currents['current_predictions']['cp'])) {
-                    $this->currentsData = collect($currents['current_predictions']['cp'])->take(6);
+        if ($this->selectedStation && $this->selectedStation->latitude && $this->selectedStation->longitude) {
+            $lat = $this->selectedStation->latitude;
+            $lng = $this->selectedStation->longitude;
+            $cacheKey = "solunar_rating_{$lat}_{$lng}_{$date}";
+
+            $solunarData = Cache::get($cacheKey);
+
+            if (!$solunarData) {
+                $solunarData = $this->getSolunarData($lat, $lng, $date);
+                if ($solunarData) {
+                    Cache::put($cacheKey, $solunarData, now()->addDays(2));
                 }
             }
+            $this->modalData->solunar = $solunarData;
         }
+
         $this->showModal = true;
     }
 
@@ -432,6 +449,38 @@ class Calendar extends Component
 
             return $ratings;
         });
+    }
+    public function getSolunarData($lat, $lng, $date, $offset = -4)
+    {
+        $cacheKey = "solunar_rating_{$lat}_{$lng}_{$date}";
+        // Check cache
+        $cachedData = Cache::get($cacheKey);
+        if ($cachedData) {
+            return $cachedData;
+        }
+        try {
+            $formattedDate = Carbon::parse($date)->format('Ymd');
+            $url = "https://api.solunar.org/solunar/{$lat},{$lng},{$formattedDate},{$offset}";
+            $client = new Client();
+            $response = $client->get($url);
+            $data = json_decode($response->getBody(), true);
+            if (!$data || !isset($data['hourlyRating'])) {
+                return null;
+            }
+            $hourly = $data['hourlyRating'];
+            $totalHours = count($hourly);
+            $totalRating = array_sum($hourly);
+            $maxPossible = $totalHours * 100;
+            $normalized = $maxPossible > 0 ? ($totalRating / $maxPossible) : 0;
+            $starRating = round($normalized * 4, 1);
+            $data['calculatedRating'] = $starRating;
+            Cache::put($cacheKey, $data, now()->addDays(30));
+
+            return $data;
+
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
 

@@ -8,7 +8,8 @@
                 <label for="stationSelect" class="form-label fw-bold">Select Station:</label><br>
                 <select wire:model="selectedStation" id="stationSelect" class="form-control">
                     @foreach ($stations as $station)
-                        <option value="{{ $station->id }}" @if(isset($selectedStation) && $selectedStation->id==$station->id) selected @endif>{{ $station->name }}</option>
+                        <option value="{{ $station->id }}"
+                                @if(isset($selectedStation) && $selectedStation->id==$station->id) selected @endif>{{ $station->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -43,7 +44,8 @@
                             <div class="accordion-body">
                                 <div class="row">
                                     @foreach ($data['months'] as $index=>$month)
-                                        <div class="calendar-month col-lg-12 col-md-12 col-sm-12 mt-4" id="month-{{ $month['name'] }}">
+                                        <div class="calendar-month col-lg-12 col-md-12 col-sm-12 mt-4"
+                                             id="month-{{ $month['name'] }}">
                                             <h5 class="text-center bg-primary text-white p-2 rounded">{{ $month['name'] }}</h5>
                                             <div class="calendar-grid">
                                                 <div class="day-header">Sun</div>
@@ -62,7 +64,8 @@
                                                             <span class="date-info">{{ $month['name'] }}<br>Day {{++$i}}</span>
                                                             <br>
                                                             <span class="date-info">{{ $day['moon_phase'] }}</span><br>
-                                                            <span class="gregorian-date" data-date="{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('Y-m-d') }}">Gregorian Date<br>{{ $day['gregorian_date'] }}</span><br><br>
+                                                            <span class="gregorian-date"
+                                                                  data-date="{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('Y-m-d') }}">Gregorian Date<br>{{ $day['gregorian_date'] }}</span><br><br>
                                                             <span class="date-info">Julian Day {{ $day['julian_day'] }}</span><br>
                                                             @if(isset($day['solunar_rating']))
                                                                 @php
@@ -92,10 +95,10 @@
                                                                 <i class="bi bi-backpack4 text-primary"></i> More Info
                                                             </button>
                                                         </div>
-
                                                         <!-- Mobile View (Hides on Desktop) -->
                                                         <div class="d-block d-md-none text-center">
-                                                            <a style="cursor: pointer; font-size: 10px; font-weight: bold" href="" class="text-dark"
+                                                            <a style="cursor: pointer; font-size: 10px; font-weight: bold"
+                                                               href="" class="text-dark"
                                                                wire:click.prevent="loadMoreData('{{ $day['date'] }}')">
                                                                 {{++$i}}
                                                             </a>
@@ -120,173 +123,258 @@
             <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-md-down" role="document">
                 <div class="modal-content border-0 shadow-lg rounded-4">
                     @if ($modalData)
-                    <div class="modal-header bg-gradient text-white"
-                         style="background: linear-gradient(to right, #1e3c72, #2a5298);">
-                        <h5 class="modal-title text-dark">🌙 Astronomical Data for {{ $selectedDate }}</h5>
-                        <button type="button" class="btn-close" wire:click.prevent="closeModal"></button>
-                    </div>
-                    <div class="modal-body p-4">
-                        <div class="card rounded border border-dark text-center m-4 p-3">
-                            <h4><i class="bi bi-moon-stars-fill"></i> Moon Phase</h4>
-                            <h5 class="text-primary">{{ $modalData->moon_phase ?? 'N/A' }}</h5>
+                        <div class="modal-header bg-gradient text-white"
+                             style="background: linear-gradient(to right, #1e3c72, #2a5298);">
+                            <h5 class="modal-title text-dark">🌙 Astronomical Data for {{ $selectedDate }}</h5>
+                            <button type="button" class="btn-close" wire:click.prevent="closeModal"></button>
                         </div>
-                        <div class="container card rounded border border-dark mb-3 p-3">
-                            <h4 class="text-center"><i class="bi bi-moon-stars-fill"></i> Sun Phase</h4>
-                            <div class="row text-center mb-4">
-                                <div class="col-md-6">
-                                    <div class="bg-light p-3 rounded-3 shadow-sm border border-dark">
-                                        <span class="text-warning"><i class="bi bi-sunrise"></i> Sunrise</span>
-                                        <p class="mb-0 fw-bold">{{ \Carbon\Carbon::parse($modalData->sunrise)->format('h:i:s a') ?? 'N/A' }}</p>
+                        <div class="modal-body p-4">
+                            <div class="card rounded border border-dark text-center m-4 p-3">
+                                <h4><i class="bi bi-moon-stars-fill"></i> Moon Phase</h4>
+                                <h5 class="text-primary">{{ $modalData->moon_phase ?? 'N/A' }}</h5>
+                            </div>
+                            <div class="container card rounded border border-dark mb-3 p-3">
+                                <h4 class="text-center"><i class="bi bi-moon-stars-fill"></i> Sun Phase</h4>
+                                <div class="row text-center mb-4">
+                                    <div class="col-md-6">
+                                        <div class="bg-light p-3 rounded-3 shadow-sm border border-dark">
+                                            <span class="text-warning"><i class="bi bi-sunrise"></i> Sunrise</span>
+                                            <p class="mb-0 fw-bold">{{ \Carbon\Carbon::parse($modalData->sunrise)->format('h:i:s a') ?? 'N/A' }}</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="bg-light p-3 rounded-3 shadow-sm border border-dark">
-                                        <h6 class="text-danger"><i class="bi bi-sunset"></i> Sunset</h6>
-                                        <p class="mb-0 fw-bold">{{\Carbon\Carbon::parse($modalData->sunset)->format('h:i:s a')?? 'N/A' }}</p>
+                                    <div class="col-md-6">
+                                        <div class="bg-light p-3 rounded-3 shadow-sm border border-dark">
+                                            <h6 class="text-danger"><i class="bi bi-sunset"></i> Sunset</h6>
+                                            <p class="mb-0 fw-bold">{{\Carbon\Carbon::parse($modalData->sunset)->format('h:i:s a')?? 'N/A' }}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        @php
-                            $themeColor = 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)'; // blue gradient
-                        @endphp
+                            @php
+                                $themeColor = 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)'; // blue gradient
+                            @endphp
 
-                        <div class="row mb-4">
-                            @if (!empty($currentsData))
-                                <!-- Tide Information -->
-                                <div class="col-md-6 mb-4">
-                                    <div class="p-4 rounded-4 shadow-sm text-white text-center h-100 border border-dark"
-                                         style="background: {{ $themeColor }};">
-                                        <h5 class="fw-bold mb-3">🌊 Tide Information</h5>
-                                        <p class="mb-2"><strong>High Tide:</strong> {{ $modalData->high_tide_time ?? 'N/A' }}
-                                            ({{ $modalData->high_tide_level ?? 'N/A' }}m)</p>
-                                        <p class="mb-2"><strong>Low Tide:</strong> {{ $modalData->low_tide_time ?? 'N/A' }}
-                                            ({{ $modalData->low_tide_level ?? 'N/A' }}m)</p>
-                                        <p class="mb-0"><strong>Water Temperature:</strong> {{ $modalData->water_temperature ?? 'N/A' }}°C</p>
-                                    </div>
-                                </div>
-
-                                <!-- Current Predictions -->
-                                <div class="col-md-6 mb-4">
-                                    <div class="p-4 rounded-4 shadow-sm text-white h-100"
-                                         style="background: {{ $themeColor }};">
-                                        <h5 class="fw-bold text-center mb-3">🌊 Current Predictions</h5>
-                                        <div class="table-responsive">
-                                            <table class="table table-borderless table-sm text-white text-center align-middle mb-0">
-                                                <thead>
-                                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.4);">
-                                                    <th>Time</th>
-                                                    <th>Velocity<br><small>(cm/s)</small></th>
-                                                    <th>Depth<br><small>(m)</small></th>
-                                                    <th>Flood Dir<br><small>(°)</small></th>
-                                                    <th>Ebb Dir<br><small>(°)</small></th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                @foreach ($currentsData as $prediction)
-                                                    <tr>
-                                                        <td>{{ \Carbon\Carbon::parse($prediction['Time'])->format('M d, Y h:i A') }}</td>
-                                                        <td>{{ number_format($prediction['Velocity_Major'], 1) }}</td>
-                                                        <td>{{ number_format($prediction['Depth'], 1) }}</td>
-                                                        <td>{{ $prediction['meanFloodDir'] }}°</td>
-                                                        <td>{{ $prediction['meanEbbDir'] }}°</td>
-                                                    </tr>
-                                                @endforeach
-                                                </tbody>
-                                            </table>
+                            <div class="row mb-4">
+                                @if (!empty($currentsData))
+                                    <!-- Tide Information -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="p-4 rounded-4 shadow-sm text-white text-center h-100 border border-dark"
+                                             style="background: {{ $themeColor }};">
+                                            <h5 class="fw-bold mb-3">🌊 Tide Information</h5>
+                                            <p class="mb-2"><strong>High
+                                                    Tide:</strong> {{ $modalData->high_tide_time ?? 'N/A' }}
+                                                ({{ $modalData->high_tide_level ?? 'N/A' }}m)</p>
+                                            <p class="mb-2"><strong>Low
+                                                    Tide:</strong> {{ $modalData->low_tide_time ?? 'N/A' }}
+                                                ({{ $modalData->low_tide_level ?? 'N/A' }}m)</p>
+                                            <p class="mb-0"><strong>Water
+                                                    Temperature:</strong> {{ $modalData->water_temperature ?? 'N/A' }}°C
+                                            </p>
                                         </div>
                                     </div>
-                                </div>
-                            @else
-                                <!-- Only Tide Information Centered -->
-                                <div class="col-md-8 offset-md-2">
-                                    <div class="p-4 rounded-4 shadow-sm text-white text-center mb-4"
-                                         style="background: {{ $themeColor }};">
-                                        <h5 class="fw-bold mb-3">🌊 Tide Information</h5>
-                                        <p class="mb-2"><strong>High Tide:</strong> {{ $modalData->high_tide_time ?? 'N/A' }}
-                                            ({{ $modalData->high_tide_level ?? 'N/A' }}m)</p>
-                                        <p class="mb-2"><strong>Low Tide:</strong> {{ $modalData->low_tide_time ?? 'N/A' }}
-                                            ({{ $modalData->low_tide_level ?? 'N/A' }}m)</p>
-                                        <p class="mb-0"><strong>Water Temperature:</strong> {{ $modalData->water_temperature ?? 'N/A' }}°C</p>
+
+                                    <!-- Current Predictions -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="p-4 rounded-4 shadow-sm text-white h-100"
+                                             style="background: {{ $themeColor }};">
+                                            <h5 class="fw-bold text-center mb-3">🌊 Current Predictions</h5>
+                                            <div class="table-responsive">
+                                                <table class="table table-borderless table-sm text-white text-center align-middle mb-0">
+                                                    <thead>
+                                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.4);">
+                                                        <th>Time</th>
+                                                        <th>Velocity<br><small>(cm/s)</small></th>
+                                                        <th>Depth<br><small>(m)</small></th>
+                                                        <th>Flood Dir<br><small>(°)</small></th>
+                                                        <th>Ebb Dir<br><small>(°)</small></th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    @foreach ($currentsData as $prediction)
+                                                        <tr>
+                                                            <td>{{ \Carbon\Carbon::parse($prediction['Time'])->format('M d, Y h:i A') }}</td>
+                                                            <td>{{ number_format($prediction['Velocity_Major'], 1) }}</td>
+                                                            <td>{{ number_format($prediction['Depth'], 1) }}</td>
+                                                            <td>{{ $prediction['meanFloodDir'] }}°</td>
+                                                            <td>{{ $prediction['meanEbbDir'] }}°</td>
+                                                        </tr>
+                                                    @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <!-- Only Tide Information Centered -->
+                                    <div class="col-md-8 offset-md-2">
+                                        <div class="p-4 rounded-4 shadow-sm text-white text-center mb-4"
+                                             style="background: {{ $themeColor }};">
+                                            <h5 class="fw-bold mb-3">🌊 Tide Information</h5>
+                                            <p class="mb-2"><strong>High
+                                                    Tide:</strong> {{ $modalData->high_tide_time ?? 'N/A' }}
+                                                ({{ $modalData->high_tide_level ?? 'N/A' }}m)</p>
+                                            <p class="mb-2"><strong>Low
+                                                    Tide:</strong> {{ $modalData->low_tide_time ?? 'N/A' }}
+                                                ({{ $modalData->low_tide_level ?? 'N/A' }}m)</p>
+                                            <p class="mb-0"><strong>Water
+                                                    Temperature:</strong> {{ $modalData->water_temperature ?? 'N/A' }}°C
+                                            </p>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Weather Section -->
+                            <div class="container bg-light p-4 rounded-3 shadow-sm text-center border border-dark">
+                                <button class="btn btn-outline-primary rounded-pill float-end"
+                                        wire:click="toggleTemperatureUnit">
+                                    Toggle to {{ $temperatureUnit === 'C' ? '°F' : '°C' }}
+                                </button>
+                                <h5 class="text-primary fw-bold">🌤️ Weather Data</h5>
+                                <p><strong>🌡 Max
+                                        Temperature:</strong> {{ $this->getTemperature($modalData->max_temp ?? 0) }}</p>
+                                <p><strong>🌡 Min
+                                        Temperature:</strong> {{ $this->getTemperature($modalData->min_temp ?? 0) }}</p>
+                                <p><strong>🌧 Precipitation:</strong> {{ $modalData->precipitation ?? 'N/A' }} mm</p>
+                                <p><strong>💨 Wind Speed:</strong> {{ $modalData->wind_speed ?? 'N/A' }} m/s</p>
+                                <p><strong>🧭 Wind Direction:</strong> {{ $modalData->weather->wind_direction ?? 'N/A' }}
+                                </p>
+                            </div>
+
+                        </div>
+                        @if($modalData?->solunar)
+                            <div class="mt-4 p-4 bg-white rounded shadow-sm">
+                                <h5 class="fw-bold mb-4 border-bottom pb-2">🌤️ Solunar Summary — {{ \Carbon\Carbon::parse($selectedDate)->format('M j, Y') }}</h5>
+
+                                <div class="row text-sm text-muted">
+                                    {{-- Sun Info --}}
+                                    <div class="col-md-4 mb-3">
+                                        <h6 class="text-dark mb-2">🌞 Sun</h6>
+                                        <ul class="list-unstyled small">
+                                            <li><strong>Rise:</strong> {{ $modalData->solunar['sunRise'] }}</li>
+                                            <li><strong>Transit:</strong> {{ $modalData->solunar['sunTransit'] }}</li>
+                                            <li><strong>Set:</strong> {{ $modalData->solunar['sunSet'] }}</li>
+                                        </ul>
+                                    </div>
+
+                                    {{-- Moon Info --}}
+                                    <div class="col-md-4 mb-3">
+                                        <h6 class="text-dark mb-2">🌙 Moon</h6>
+                                        <ul class="list-unstyled small">
+                                            <li><strong>Rise:</strong> {{ $modalData->solunar['moonRise'] }}</li>
+                                            <li><strong>Transit:</strong> {{ $modalData->solunar['moonTransit'] }}</li>
+                                            <li><strong>Set:</strong> {{ $modalData->solunar['moonSet'] }}</li>
+                                            <li><strong>Phase:</strong> {{ $modalData->solunar['moonPhase'] }}</li>
+                                            <li><strong>Illumination:</strong> {{ round($modalData->solunar['moonIllumination'] * 100) }}%</li>
+                                        </ul>
+                                    </div>
+
+                                    {{-- Ratings & Activity --}}
+                                    <div class="col-md-4 mb-3">
+                                        <h6 class="text-dark mb-2">🎯 Ratings</h6>
+                                        <ul class="list-unstyled small">
+                                            <li><strong>Day:</strong> {{ $modalData->solunar['dayRating'] }}</li>
+                                            <li><strong>Calc:</strong> {{ $modalData->solunar['calculatedRating'] }}</li>
+                                        </ul>
+                                        <h6 class="text-dark mt-3 mb-2">🎣 Activity Times</h6>
+                                        <ul class="list-unstyled small">
+                                            <li><strong>Minor 1:</strong> {{ $modalData->solunar['minor1Start'] }} – {{ $modalData->solunar['minor1Stop'] }}</li>
+                                            <li><strong>Minor 2:</strong> {{ $modalData->solunar['minor2Start'] }} – {{ $modalData->solunar['minor2Stop'] }}</li>
+                                            <li><strong>Major 1:</strong> {{ $modalData->solunar['major1Start'] }} – {{ $modalData->solunar['major1Stop'] }}</li>
+                                            <li><strong>Major 2:</strong> {{ $modalData->solunar['major2Start'] }} – {{ $modalData->solunar['major2Stop'] }}</li>
+                                        </ul>
                                     </div>
                                 </div>
-                            @endif
-                        </div>
 
-                        <!-- Weather Section -->
-                        <div class="container bg-light p-4 rounded-3 shadow-sm text-center border border-dark">
-                            <button class="btn btn-outline-primary rounded-pill float-end" wire:click="toggleTemperatureUnit">
-                                Toggle to {{ $temperatureUnit === 'C' ? '°F' : '°C' }}
-                            </button>
-                            <h5 class="text-primary fw-bold">🌤️ Weather Data</h5>
-                            <p><strong>🌡 Max Temperature:</strong> {{ $this->getTemperature($modalData->max_temp ?? 0) }}</p>
-                            <p><strong>🌡 Min Temperature:</strong> {{ $this->getTemperature($modalData->min_temp ?? 0) }}</p>
-                            <p><strong>🌧 Precipitation:</strong> {{ $modalData->precipitation ?? 'N/A' }} mm</p>
-                            <p><strong>💨 Wind Speed:</strong> {{ $modalData->wind_speed ?? 'N/A' }} m/s</p>
-                            <p><strong>🧭 Wind Direction:</strong> {{ $modalData->weather->wind_direction ?? 'N/A' }}</p>
-                        </div>
+                                <hr>
 
-                    </div>
-                        @foreach ($stationMoreData as $product => $content)
-                            <h5 class="mt-4 text-capitalize">{{ str_replace('_', ' ', $product) }}</h5>
-
-                            @if (is_array($content) && isset($content[$product]) && is_array($content[$product]))
-                                @php
-                                    $rows = $content[$product];
-                                @endphp
-
-                                <div class="table-responsive">
-                                    <table class="table table-sm table-bordered">
-                                        <thead>
-                                        <tr>
-                                            @foreach (array_keys($rows[0] ?? []) as $key)
-                                                <th>{{ ucfirst($key) }}</th>
-                                            @endforeach
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        @foreach (array_slice($rows, 0, 10) as $row)
-                                            <tr>
-                                                @foreach ($row as $cell)
-                                                    <td>{{ $cell }}</td>
-                                                @endforeach
-                                            </tr>
+                                {{-- Hourly Activity --}}
+                                <div class="mt-4">
+                                    <h6 class="fw-semibold mb-3">⏰ Hourly Activity Rating</h6>
+                                    <div class="d-flex flex-wrap">
+                                        @foreach($modalData->solunar['hourlyRating'] as $hour => $rating)
+                                            @php
+                                                $color = match(true) {
+                                                    $rating >= 40 => 'bg-success text-white',
+                                                    $rating >= 20 => 'bg-warning text-dark',
+                                                    default => 'bg-light text-muted'
+                                                };
+                                            @endphp
+                                            <div class="text-center border rounded p-2 m-1 {{ $color }}" style="width: 50px; font-size: 0.75rem;">
+                                                <div>{{ str_pad($hour, 2, '0', STR_PAD_LEFT) }}</div>
+                                                <div>{{ $rating }}</div>
+                                            </div>
                                         @endforeach
-                                        </tbody>
-                                    </table>
-
-                                    @if (count($rows) > 10)
-                                        <button class="btn btn-sm btn-link" data-bs-toggle="collapse" data-bs-target="#more-{{ $product }}">Show more</button>
-                                        <div class="collapse" id="more-{{ $product }}">
-                                            <table class="table table-sm table-bordered mt-2">
-                                                <tbody>
-                                                @foreach (array_slice($rows, 10) as $row)
-                                                    <tr>
-                                                        @foreach ($row as $cell)
-                                                            <td>{{ $cell }}</td>
-                                                        @endforeach
-                                                    </tr>
-                                                @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    @endif
+                                    </div>
                                 </div>
-                            @elseif(is_array($content))
-                                <pre>{{ json_encode($content, JSON_PRETTY_PRINT) }}</pre>
-                            @else
-                                <p class="text-muted">{{ $content }}</p>
-                            @endif
-                        @endforeach
+                            </div>
+                        @endif
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-dark w-100 rounded-pill" wire:click="closeModal">Close</button>
-                    </div>
+{{--                        @foreach ($stationMoreData as $product => $content)--}}
+{{--                            <h5 class="mt-4 text-capitalize">{{ str_replace('_', ' ', $product) }}</h5>--}}
+
+{{--                            @if (is_array($content) && isset($content[$product]) && is_array($content[$product]))--}}
+{{--                                @php--}}
+{{--                                    $rows = $content[$product];--}}
+{{--                                @endphp--}}
+
+{{--                                <div class="table-responsive">--}}
+{{--                                    <table class="table table-sm table-bordered">--}}
+{{--                                        <thead>--}}
+{{--                                        <tr>--}}
+{{--                                            @foreach (array_keys($rows[0] ?? []) as $key)--}}
+{{--                                                <th>{{ ucfirst($key) }}</th>--}}
+{{--                                            @endforeach--}}
+{{--                                        </tr>--}}
+{{--                                        </thead>--}}
+{{--                                        <tbody>--}}
+{{--                                        @foreach (array_slice($rows, 0, 10) as $row)--}}
+{{--                                            <tr>--}}
+{{--                                                @foreach ($row as $cell)--}}
+{{--                                                    <td>{{ $cell }}</td>--}}
+{{--                                                @endforeach--}}
+{{--                                            </tr>--}}
+{{--                                        @endforeach--}}
+{{--                                        </tbody>--}}
+{{--                                    </table>--}}
+
+{{--                                    @if (count($rows) > 10)--}}
+{{--                                        <button class="btn btn-sm btn-link" data-bs-toggle="collapse"--}}
+{{--                                                data-bs-target="#more-{{ $product }}">Show more--}}
+{{--                                        </button>--}}
+{{--                                        <div class="collapse" id="more-{{ $product }}">--}}
+{{--                                            <table class="table table-sm table-bordered mt-2">--}}
+{{--                                                <tbody>--}}
+{{--                                                @foreach (array_slice($rows, 10) as $row)--}}
+{{--                                                    <tr>--}}
+{{--                                                        @foreach ($row as $cell)--}}
+{{--                                                            <td>{{ $cell }}</td>--}}
+{{--                                                        @endforeach--}}
+{{--                                                    </tr>--}}
+{{--                                                @endforeach--}}
+{{--                                                </tbody>--}}
+{{--                                            </table>--}}
+{{--                                        </div>--}}
+{{--                                    @endif--}}
+{{--                                </div>--}}
+{{--                            @elseif(is_array($content))--}}
+{{--                                <pre>{{ json_encode($content, JSON_PRETTY_PRINT) }}</pre>--}}
+{{--                            @else--}}
+{{--                                <p class="text-muted">{{ $content }}</p>--}}
+{{--                            @endif--}}
+{{--                        @endforeach--}}
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-dark w-100 rounded-pill" wire:click="closeModal">
+                                Close
+                            </button>
+                        </div>
                     @else
                         <!-- Message when no data is found -->
                         <div class="text-center py-5">
                             <h4 class="text-muted">🚫 No Data Available</h4>
-                            <p class="text-secondary">We couldn't find any tide or weather data for the selected date.</p>
+                            <p class="text-secondary">We couldn't find any tide or weather data for the selected
+                                date.</p>
                             <button class="btn btn-primary rounded-pill" wire:click="closeModal">Close</button>
                         </div>
                     @endif
@@ -373,6 +461,7 @@
                 padding: 40px;
             }
         }
+
         .fixed-header {
             position: fixed;
             top: 0;
@@ -412,7 +501,7 @@
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -425,7 +514,7 @@
                 let selectedStation = parseInt($(this).val(), 10);
                 if (!isNaN(selectedStation)) {
                     $('#loader').show();
-                    Livewire.dispatch('updateStation', { stationId: selectedStation });
+                    Livewire.dispatch('updateStation', {stationId: selectedStation});
                     console.log("Livewire Event Dispatched:", selectedStation);
                 }
             });
@@ -469,7 +558,7 @@
             setTimeout(() => {
                 const todayElement = document.querySelector('.calendar-day[style*="background-color: lightgreen"]');
                 if (todayElement) {
-                    todayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    todayElement.scrollIntoView({behavior: 'smooth', block: 'center'});
                 }
             }, 500);
         }
