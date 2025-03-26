@@ -19,12 +19,15 @@ class Calendar extends Component
 
     public $stations, $selectedStationId, $selectedStation, $location, $calendarData;
     public $loading = false, $selectedDate, $modalData, $showModal = false;
-    public $temperatureUnit = 'C';
+    public $temperatureUnit='F';
     public $currentsData,$stationMoreData,$solunarData;
 
 
     public function mount()
     {
+
+        $this->temperatureUnit = config('temperature_unit', 'F');
+
         $this->location = $this->getUserLocation();
         if (!$this->location) return response()->json(['error' => 'Unable to determine location.'], 400);
 
