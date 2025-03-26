@@ -240,129 +240,161 @@
                                 <p><strong>🧭 Wind Direction:</strong> {{ $modalData->weather->wind_direction ?? 'N/A' }}
                                 </p>
                             </div>
+                            @if($modalData?->solunar)
+                                <div class="row mb-4">
+                                    <div class="container bg-light p-4 rounded-3 shadow-sm text-center border border-dark">
+
+                                            <h5 class="fw-bold mb-4 border-bottom pb-2">🌤️ Solunar Summary
+                                                — {{ \Carbon\Carbon::parse($selectedDate)->format('M j, Y') }}</h5>
+
+                                            <div class="row text-sm text-muted">
+                                                {{-- Sun Info --}}
+                                                <div class="col-md-4 mb-3">
+                                                    <h6 class="text-dark mb-2">🌞 Sun</h6>
+                                                    <ul class="list-unstyled small">
+                                                        <li><strong>Rise:</strong> {{ $modalData->solunar['sunRise'] }}
+                                                        </li>
+                                                        <li>
+                                                            <strong>Transit:</strong> {{ $modalData->solunar['sunTransit'] }}
+                                                        </li>
+                                                        <li><strong>Set:</strong> {{ $modalData->solunar['sunSet'] }}
+                                                        </li>
+                                                    </ul>
+                                                </div>
+
+                                                {{-- Moon Info --}}
+                                                <div class="col-md-4 mb-3">
+                                                    <h6 class="text-dark mb-2">🌙 Moon</h6>
+                                                    <ul class="list-unstyled small">
+                                                        <li><strong>Rise:</strong> {{ $modalData->solunar['moonRise'] }}
+                                                        </li>
+                                                        <li>
+                                                            <strong>Transit:</strong> {{ $modalData->solunar['moonTransit'] }}
+                                                        </li>
+                                                        <li><strong>Set:</strong> {{ $modalData->solunar['moonSet'] }}
+                                                        </li>
+                                                        <li>
+                                                            <strong>Phase:</strong> {{ $modalData->solunar['moonPhase'] }}
+                                                        </li>
+                                                        <li>
+                                                            <strong>Illumination:</strong> {{ round($modalData->solunar['moonIllumination'] * 100) }}
+                                                            %
+                                                        </li>
+                                                    </ul>
+                                                </div>
+
+                                                {{-- Ratings & Activity --}}
+                                                <div class="col-md-4 mb-3">
+                                                    <h6 class="text-dark mb-2">🎯 Ratings</h6>
+                                                    <ul class="list-unstyled small">
+                                                        <li><strong>Day:</strong> {{ $modalData->solunar['dayRating'] }}
+                                                        </li>
+                                                        <li>
+                                                            <strong>Calc:</strong> {{ $modalData->solunar['calculatedRating'] }}
+                                                        </li>
+                                                    </ul>
+                                                    <h6 class="text-dark mt-3 mb-2">🎣 Activity Times</h6>
+                                                    <ul class="list-unstyled small">
+                                                        <li><strong>Minor
+                                                                1:</strong> {{ $modalData->solunar['minor1Start'] }}
+                                                            – {{ $modalData->solunar['minor1Stop'] }}</li>
+                                                        <li><strong>Minor
+                                                                2:</strong> {{ $modalData->solunar['minor2Start'] }}
+                                                            – {{ $modalData->solunar['minor2Stop'] }}</li>
+                                                        <li><strong>Major
+                                                                1:</strong> {{ $modalData->solunar['major1Start'] }}
+                                                            – {{ $modalData->solunar['major1Stop'] }}</li>
+                                                        <li><strong>Major
+                                                                2:</strong> {{ $modalData->solunar['major2Start'] }}
+                                                            – {{ $modalData->solunar['major2Stop'] }}</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+
+                                            <hr>
+
+                                            {{-- Hourly Activity --}}
+                                            <div class="mt-4">
+                                                <h6 class="fw-semibold mb-3">⏰ Hourly Activity Rating</h6>
+                                                <div class="d-flex flex-wrap">
+                                                    @foreach($modalData->solunar['hourlyRating'] as $hour => $rating)
+                                                        @php
+                                                            $color = match(true) {
+                                                                $rating >= 40 => 'bg-success text-white',
+                                                                $rating >= 20 => 'bg-warning text-dark',
+                                                                default => 'bg-light text-muted'
+                                                            };
+                                                        @endphp
+                                                        <div class="text-center border rounded p-2 m-1 {{ $color }}"
+                                                             style="width: 50px; font-size: 0.75rem;">
+                                                            <div>{{ str_pad($hour, 2, '0', STR_PAD_LEFT) }}</div>
+                                                            <div>{{ $rating }}</div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+
+                                    </div>
+                                </div>
+                            @endif
+
 
                         </div>
-                        @if($modalData?->solunar)
-                            <div class="mt-4 p-4 bg-white rounded shadow-sm">
-                                <h5 class="fw-bold mb-4 border-bottom pb-2">🌤️ Solunar Summary — {{ \Carbon\Carbon::parse($selectedDate)->format('M j, Y') }}</h5>
 
-                                <div class="row text-sm text-muted">
-                                    {{-- Sun Info --}}
-                                    <div class="col-md-4 mb-3">
-                                        <h6 class="text-dark mb-2">🌞 Sun</h6>
-                                        <ul class="list-unstyled small">
-                                            <li><strong>Rise:</strong> {{ $modalData->solunar['sunRise'] }}</li>
-                                            <li><strong>Transit:</strong> {{ $modalData->solunar['sunTransit'] }}</li>
-                                            <li><strong>Set:</strong> {{ $modalData->solunar['sunSet'] }}</li>
-                                        </ul>
-                                    </div>
 
-                                    {{-- Moon Info --}}
-                                    <div class="col-md-4 mb-3">
-                                        <h6 class="text-dark mb-2">🌙 Moon</h6>
-                                        <ul class="list-unstyled small">
-                                            <li><strong>Rise:</strong> {{ $modalData->solunar['moonRise'] }}</li>
-                                            <li><strong>Transit:</strong> {{ $modalData->solunar['moonTransit'] }}</li>
-                                            <li><strong>Set:</strong> {{ $modalData->solunar['moonSet'] }}</li>
-                                            <li><strong>Phase:</strong> {{ $modalData->solunar['moonPhase'] }}</li>
-                                            <li><strong>Illumination:</strong> {{ round($modalData->solunar['moonIllumination'] * 100) }}%</li>
-                                        </ul>
-                                    </div>
+                        {{--                        @foreach ($stationMoreData as $product => $content)--}}
+                        {{--                            <h5 class="mt-4 text-capitalize">{{ str_replace('_', ' ', $product) }}</h5>--}}
 
-                                    {{-- Ratings & Activity --}}
-                                    <div class="col-md-4 mb-3">
-                                        <h6 class="text-dark mb-2">🎯 Ratings</h6>
-                                        <ul class="list-unstyled small">
-                                            <li><strong>Day:</strong> {{ $modalData->solunar['dayRating'] }}</li>
-                                            <li><strong>Calc:</strong> {{ $modalData->solunar['calculatedRating'] }}</li>
-                                        </ul>
-                                        <h6 class="text-dark mt-3 mb-2">🎣 Activity Times</h6>
-                                        <ul class="list-unstyled small">
-                                            <li><strong>Minor 1:</strong> {{ $modalData->solunar['minor1Start'] }} – {{ $modalData->solunar['minor1Stop'] }}</li>
-                                            <li><strong>Minor 2:</strong> {{ $modalData->solunar['minor2Start'] }} – {{ $modalData->solunar['minor2Stop'] }}</li>
-                                            <li><strong>Major 1:</strong> {{ $modalData->solunar['major1Start'] }} – {{ $modalData->solunar['major1Stop'] }}</li>
-                                            <li><strong>Major 2:</strong> {{ $modalData->solunar['major2Start'] }} – {{ $modalData->solunar['major2Stop'] }}</li>
-                                        </ul>
-                                    </div>
-                                </div>
+                        {{--                            @if (is_array($content) && isset($content[$product]) && is_array($content[$product]))--}}
+                        {{--                                @php--}}
+                        {{--                                    $rows = $content[$product];--}}
+                        {{--                                @endphp--}}
 
-                                <hr>
+                        {{--                                <div class="table-responsive">--}}
+                        {{--                                    <table class="table table-sm table-bordered">--}}
+                        {{--                                        <thead>--}}
+                        {{--                                        <tr>--}}
+                        {{--                                            @foreach (array_keys($rows[0] ?? []) as $key)--}}
+                        {{--                                                <th>{{ ucfirst($key) }}</th>--}}
+                        {{--                                            @endforeach--}}
+                        {{--                                        </tr>--}}
+                        {{--                                        </thead>--}}
+                        {{--                                        <tbody>--}}
+                        {{--                                        @foreach (array_slice($rows, 0, 10) as $row)--}}
+                        {{--                                            <tr>--}}
+                        {{--                                                @foreach ($row as $cell)--}}
+                        {{--                                                    <td>{{ $cell }}</td>--}}
+                        {{--                                                @endforeach--}}
+                        {{--                                            </tr>--}}
+                        {{--                                        @endforeach--}}
+                        {{--                                        </tbody>--}}
+                        {{--                                    </table>--}}
 
-                                {{-- Hourly Activity --}}
-                                <div class="mt-4">
-                                    <h6 class="fw-semibold mb-3">⏰ Hourly Activity Rating</h6>
-                                    <div class="d-flex flex-wrap">
-                                        @foreach($modalData->solunar['hourlyRating'] as $hour => $rating)
-                                            @php
-                                                $color = match(true) {
-                                                    $rating >= 40 => 'bg-success text-white',
-                                                    $rating >= 20 => 'bg-warning text-dark',
-                                                    default => 'bg-light text-muted'
-                                                };
-                                            @endphp
-                                            <div class="text-center border rounded p-2 m-1 {{ $color }}" style="width: 50px; font-size: 0.75rem;">
-                                                <div>{{ str_pad($hour, 2, '0', STR_PAD_LEFT) }}</div>
-                                                <div>{{ $rating }}</div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
-{{--                        @foreach ($stationMoreData as $product => $content)--}}
-{{--                            <h5 class="mt-4 text-capitalize">{{ str_replace('_', ' ', $product) }}</h5>--}}
-
-{{--                            @if (is_array($content) && isset($content[$product]) && is_array($content[$product]))--}}
-{{--                                @php--}}
-{{--                                    $rows = $content[$product];--}}
-{{--                                @endphp--}}
-
-{{--                                <div class="table-responsive">--}}
-{{--                                    <table class="table table-sm table-bordered">--}}
-{{--                                        <thead>--}}
-{{--                                        <tr>--}}
-{{--                                            @foreach (array_keys($rows[0] ?? []) as $key)--}}
-{{--                                                <th>{{ ucfirst($key) }}</th>--}}
-{{--                                            @endforeach--}}
-{{--                                        </tr>--}}
-{{--                                        </thead>--}}
-{{--                                        <tbody>--}}
-{{--                                        @foreach (array_slice($rows, 0, 10) as $row)--}}
-{{--                                            <tr>--}}
-{{--                                                @foreach ($row as $cell)--}}
-{{--                                                    <td>{{ $cell }}</td>--}}
-{{--                                                @endforeach--}}
-{{--                                            </tr>--}}
-{{--                                        @endforeach--}}
-{{--                                        </tbody>--}}
-{{--                                    </table>--}}
-
-{{--                                    @if (count($rows) > 10)--}}
-{{--                                        <button class="btn btn-sm btn-link" data-bs-toggle="collapse"--}}
-{{--                                                data-bs-target="#more-{{ $product }}">Show more--}}
-{{--                                        </button>--}}
-{{--                                        <div class="collapse" id="more-{{ $product }}">--}}
-{{--                                            <table class="table table-sm table-bordered mt-2">--}}
-{{--                                                <tbody>--}}
-{{--                                                @foreach (array_slice($rows, 10) as $row)--}}
-{{--                                                    <tr>--}}
-{{--                                                        @foreach ($row as $cell)--}}
-{{--                                                            <td>{{ $cell }}</td>--}}
-{{--                                                        @endforeach--}}
-{{--                                                    </tr>--}}
-{{--                                                @endforeach--}}
-{{--                                                </tbody>--}}
-{{--                                            </table>--}}
-{{--                                        </div>--}}
-{{--                                    @endif--}}
-{{--                                </div>--}}
-{{--                            @elseif(is_array($content))--}}
-{{--                                <pre>{{ json_encode($content, JSON_PRETTY_PRINT) }}</pre>--}}
-{{--                            @else--}}
-{{--                                <p class="text-muted">{{ $content }}</p>--}}
-{{--                            @endif--}}
-{{--                        @endforeach--}}
+                        {{--                                    @if (count($rows) > 10)--}}
+                        {{--                                        <button class="btn btn-sm btn-link" data-bs-toggle="collapse"--}}
+                        {{--                                                data-bs-target="#more-{{ $product }}">Show more--}}
+                        {{--                                        </button>--}}
+                        {{--                                        <div class="collapse" id="more-{{ $product }}">--}}
+                        {{--                                            <table class="table table-sm table-bordered mt-2">--}}
+                        {{--                                                <tbody>--}}
+                        {{--                                                @foreach (array_slice($rows, 10) as $row)--}}
+                        {{--                                                    <tr>--}}
+                        {{--                                                        @foreach ($row as $cell)--}}
+                        {{--                                                            <td>{{ $cell }}</td>--}}
+                        {{--                                                        @endforeach--}}
+                        {{--                                                    </tr>--}}
+                        {{--                                                @endforeach--}}
+                        {{--                                                </tbody>--}}
+                        {{--                                            </table>--}}
+                        {{--                                        </div>--}}
+                        {{--                                    @endif--}}
+                        {{--                                </div>--}}
+                        {{--                            @elseif(is_array($content))--}}
+                        {{--                                <pre>{{ json_encode($content, JSON_PRETTY_PRINT) }}</pre>--}}
+                        {{--                            @else--}}
+                        {{--                                <p class="text-muted">{{ $content }}</p>--}}
+                        {{--                            @endif--}}
+                        {{--                        @endforeach--}}
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-dark w-100 rounded-pill" wire:click="closeModal">
