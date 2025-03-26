@@ -7,6 +7,7 @@ use Carbon\CarbonTimeZone;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 use Tuna976\CustomCalendar\CustomCalendar;
+use Tuna976\CustomCalendar\Models\NOAAEnvironmentalReading;
 use Tuna976\CustomCalendar\Models\NOAAStation;
 use Tuna976\CustomCalendar\Models\NOAATideForecast;
 
@@ -17,7 +18,7 @@ class Calendar extends Component
     public $stations, $selectedStationId, $selectedStation, $location, $calendarData;
     public $loading = false, $selectedDate, $modalData, $showModal = false;
     public $temperatureUnit = 'C';
-    public $currentsData;
+    public $currentsData,$stationMoreData;
 
 
     public function mount()
@@ -85,7 +86,10 @@ class Calendar extends Component
             }
         }
         $this->currentsData = null;
+        $this->fetchAllNoaaProducts($this->selectedStation->station_id, $date);
         if ($this->selectedStation && $this->selectedStation->currentStation) {
+//            $this->getStationData($this->selectedStation->station_id, $date);
+
             $isToday = Carbon::parse($date)->isToday();
             if ($isToday) {
                 $currents = $this->fetchCurrentsData($this->selectedStation->currentStation->station_id, 'today');
@@ -277,7 +281,7 @@ class Calendar extends Component
             'interval' => 'h',
             'format' => 'json',
         ]);
-        dd($response->json());
+
 
         if ($response->successful()) {
             return $response->json();
@@ -285,5 +289,119 @@ class Calendar extends Component
 
         return null;
     }
+//    public function fetchAllNoaaProducts($stationId, $date)
+//    {
+//        $results = [];
+//
+//        $startDate = Carbon::parse($date)->format('Ymd');
+//        $endDate = Carbon::parse($date)->format('Ymd');
+//
+//        $productsWithDatum = ['predictions', 'water_level'];
+//        $productsStandard = [
+//            'wind',
+//            'air_temperature',
+//            'water_temperature',
+//            'air_pressure',
+//            'humidity',
+//            'salinity',
+//            'visibility',
+//            'dew_point'
+//        ];
+//        foreach ($productsWithDatum as $product) {
+//            $queryParams = [
+//                'station' => $stationId,
+//                'product' => $product,
+//                'begin_date' => $startDate,
+//                'end_date' => $endDate,
+//                'datum' => 'MLLW',
+//                'units' => 'metric',
+//                'time_zone' => 'gmt',
+//                'format' => 'json',
+//            ];
+//
+//            $response = Http::get('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter', $queryParams);
+//
+//            $results[$product] = $response->successful()
+//                ? ($response->json() ?? 'No data returned')
+//                : 'Request failed (' . $response->status() . ')';
+//        }
+//
+//        foreach ($productsStandard as $product) {
+//            $queryParams = [
+//                'station' => $stationId,
+//                'product' => $product,
+//                'begin_date' => $startDate,
+//                'end_date' => $endDate,
+//                'units' => 'metric',
+//                'time_zone' => 'gmt',
+//                'format' => 'json',
+//            ];
+//
+//            $response = Http::get('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter', $queryParams);
+//
+//            $results[$product] = $response->successful()
+//                ? ($response->json() ?? 'No data returned')
+//                : 'Request failed (' . $response->status() . ')';
+//        }
+////        dd($results);
+//        $this->stationMoreData =$results;
+//    }
+    public function fetchAllNoaaProducts($stationId, $date)
+    {
+        $results = [];
+
+        $startDate = Carbon::parse($date)->format('Ymd');
+        $endDate = Carbon::parse($date)->format('Ymd');
+
+        $productsWithDatum = ['predictions', 'water_level'];
+        $productsStandard = [
+            'wind', 'air_temperature', 'water_temperature',
+            'air_pressure', 'humidity', 'salinity',
+            'visibility', 'dew_point'
+        ];
+
+        $allProducts = array_merge($productsWithDatum, $productsStandard);
+
+        foreach ($allProducts as $product) {
+            $queryParams = [
+                'station' => $stationId,
+                'product' => $product,
+                'begin_date' => $startDate,
+                'end_date' => $endDate,
+                'units' => 'metric',
+                'time_zone' => 'gmt',
+                'format' => 'json',
+            ];
+
+            if (in_array($product, $productsWithDatum)) {
+                $queryParams['datum'] = 'MLLW';
+            }
+
+            $response = Http::get('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter', $queryParams);
+
+            if ($response->successful() && isset($response['data'])) {
+                $results[$product] = $response['data'];
+
+                foreach ($response['data'] as $item) {
+                    if (!isset($item['t'], $item['v'])) continue;
+
+                    $timestamp = Carbon::parse($item['t']);
+
+                    NOAAEnvironmentalReading::updateOrCreate([
+                        'station_id'   => $stationId,
+                        'product'      => $product,
+                        'reading_time' => $timestamp,
+                    ], [
+                        'date'  => $timestamp->toDateString(),
+                        'value' => $item['v'],
+                    ]);
+                }
+            } else {
+                $results[$product] = 'Request failed (' . $response->status() . ')';
+            }
+        }
+        $this->stationMoreData = $results;
+    }
+
 
 }

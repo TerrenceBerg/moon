@@ -208,6 +208,57 @@
                         </div>
 
                     </div>
+                        @foreach ($stationMoreData as $product => $content)
+                            <h5 class="mt-4 text-capitalize">{{ str_replace('_', ' ', $product) }}</h5>
+
+                            @if (is_array($content) && isset($content[$product]) && is_array($content[$product]))
+                                @php
+                                    $rows = $content[$product];
+                                @endphp
+
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered">
+                                        <thead>
+                                        <tr>
+                                            @foreach (array_keys($rows[0] ?? []) as $key)
+                                                <th>{{ ucfirst($key) }}</th>
+                                            @endforeach
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach (array_slice($rows, 0, 10) as $row)
+                                            <tr>
+                                                @foreach ($row as $cell)
+                                                    <td>{{ $cell }}</td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
+
+                                    @if (count($rows) > 10)
+                                        <button class="btn btn-sm btn-link" data-bs-toggle="collapse" data-bs-target="#more-{{ $product }}">Show more</button>
+                                        <div class="collapse" id="more-{{ $product }}">
+                                            <table class="table table-sm table-bordered mt-2">
+                                                <tbody>
+                                                @foreach (array_slice($rows, 10) as $row)
+                                                    <tr>
+                                                        @foreach ($row as $cell)
+                                                            <td>{{ $cell }}</td>
+                                                        @endforeach
+                                                    </tr>
+                                                @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @endif
+                                </div>
+                            @elseif(is_array($content))
+                                <pre>{{ json_encode($content, JSON_PRETTY_PRINT) }}</pre>
+                            @else
+                                <p class="text-muted">{{ $content }}</p>
+                            @endif
+                        @endforeach
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-dark w-100 rounded-pill" wire:click="closeModal">Close</button>
