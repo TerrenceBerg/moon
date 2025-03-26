@@ -56,7 +56,7 @@
         }
 
         .date-info {
-            font-size: 10px;
+            font-size: 13px;
             color: #555;
             display: block;
             margin-top: 2px;

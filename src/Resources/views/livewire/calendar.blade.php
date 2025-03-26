@@ -1,4 +1,6 @@
 <div>
+
+    {{dd($calendarData['2025'])}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <div class="fixed-header shadow-sm">
         <div class="header-content container">
@@ -57,22 +59,22 @@
                                                     <div class="calendar-day"
                                                          id="day-{{ $day['date'] }}"
                                                          style="{{ $day['is_today'] ? 'background-color: lightgreen; color: black; border: 2px solid green;' : '' }}">
-
                                                         <!-- Desktop View (Hides on Mobile) -->
                                                         <div class="d-none d-md-block">
-                                                            <span class="gregorian-date" data-date="{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('Y-m-d') }}">{{ $day['gregorian_date'] }}</span>
-                                                            <span class="date-info">{{ $day['julian_day'] }}</span>
+                                                            <span class="date-info">{{ $month['name'] }}<br>Day </span>
 
-                                                            <span class="date-info">{{ $day['moon_phase'] }}</span>
+                                                            <span class="date-info">{{ $day['moon_phase'] }}</span><br>
+                                                            <span class="gregorian-date" data-date="{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('Y-m-d') }}">Gregorian Date<br>{{ $day['gregorian_date'] }}</span><br><br>
+                                                            <span class="date-info">Julian Day {{ $day['julian_day'] }}</span><br>
 
                                                             @php $tide = $day['tide_data']; @endphp
                                                             @if ($tide)
                                                                 <span class="date-info">🌊 High: {{ $tide['high_tide_time'] }} ({{ $tide['high_tide_level'] }}m)</span>
                                                                 <span class="date-info">🌊 Low: {{ $tide['low_tide_time'] }} ({{ $tide['low_tide_level'] }}m)</span>
                                                             @endif
-                                                            <button class="btn btn-sm btn-light mt-2"
+                                                            <button class="btn btn-sm btn-light mt-2 border border-dark"
                                                                     wire:click="loadMoreData('{{ $day['date'] }}')">
-                                                                <i class="bi bi-info-circle-fill text-primary"></i>
+                                                                <i class="bi bi-backpack4 text-primary"></i> More Info
                                                             </button>
                                                         </div>
 
