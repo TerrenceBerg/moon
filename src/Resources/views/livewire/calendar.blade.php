@@ -62,8 +62,6 @@
                                                             <span class="date-info">{{ $month['name'] }}<br>Day {{++$i}}</span>
                                                             <br>
                                                             <span class="date-info">{{ $day['moon_phase'] }}</span><br>
-                                                            <span class="date-info">Solunar index Day Rating
-                                                            </span><br>
                                                             <span class="gregorian-date" data-date="{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('Y-m-d') }}">Gregorian Date<br>{{ $day['gregorian_date'] }}</span><br><br>
                                                             <span class="date-info">Julian Day {{ $day['julian_day'] }}</span><br>
                                                             @if(isset($day['solunar_rating']))
