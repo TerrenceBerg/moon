@@ -12,6 +12,7 @@ use Tuna976\CustomCalendar\Commands\FetchTideDataCommand;
 use Tuna976\CustomCalendar\Commands\ImportDataCommand;
 use Tuna976\CustomCalendar\Commands\MatchNoaaCurrentStations;
 use Tuna976\CustomCalendar\Http\Livewire\Calendar;
+use Tuna976\CustomCalendar\Http\Livewire\CalendarDayWidget;
 
 class CustomCalendarServiceProvider extends ServiceProvider
 {
@@ -24,6 +25,7 @@ class CustomCalendarServiceProvider extends ServiceProvider
 //        Livewire::component('custom-calendar', Calendar::class);
         if (class_exists(Livewire::class)) {
             Livewire::component('custom-calendar', Calendar::class);
+            Livewire::component('custom-calendar-day-widget', CalendarDayWidget::class);
         }
 
         // ✅ Load Routes (Remove runningInConsole check)
