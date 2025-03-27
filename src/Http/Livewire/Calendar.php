@@ -62,14 +62,14 @@ class Calendar extends Component
             ->first();
 
         if ($this->modalData) {
-            if (!isset($this->modalData->sunrise, $this->modalData->sunset)) {
-                $this->storeSunriseSunsetData($date);
-                $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
-                    ->whereDate('date', $date)
-                    ->first();
-            }
-
-            $this->modalData->moon_phase = $this->getMoonPhase($date);
+//            if (!isset($this->modalData->sunrise, $this->modalData->sunset)) {
+//                $this->storeSunriseSunsetData($date);
+//                $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
+//                    ->whereDate('date', $date)
+//                    ->first();
+//            }
+//
+//            $this->modalData->moon_phase = $this->getMoonPhase($date);
 
             if (!$this->modalData->min_temp || !$this->modalData->precipitation || !$this->modalData->weather_code) {
                 $weatherData = $this->fetchWeather($date);
@@ -77,9 +77,9 @@ class Calendar extends Component
                     $this->modalData->update($weatherData);
                 }
             }
-            if (!$this->modalData->low_tide_time || !$this->modalData->low_tide_level || !$this->modalData->high_tide_level || !$this->modalData->high_tide_time) {
-                $this->getTideData($date);
-            }
+//            if (!$this->modalData->low_tide_time || !$this->modalData->low_tide_level || !$this->modalData->high_tide_level || !$this->modalData->high_tide_time) {
+//                $this->getTideData($date);
+//            }
         } else {
             $this->getTideData($date);
             $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
