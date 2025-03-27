@@ -44,6 +44,20 @@ class CustomCalendar
 
             $vernalEquinox = Carbon::parse($solarEvents[$year]);
             $months = [];
+            $cacheKeys = [];
+            $dateMap = [];
+
+            foreach ($moons as $moon) {
+                $monthStart = $vernalEquinox->copy()->addDays($moon['offset']);
+                for ($i = 0; $i < 28; $i++) {
+                    $date = $monthStart->copy()->addDays($i)->toDateString();
+                    $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$date}";
+                    $cacheKeys[] = $cacheKey;
+                    $dateMap[$cacheKey] = $date;
+                }
+            }
+
+            $solunarBulk = Cache::many($cacheKeys);
 
             foreach ($moons as $moon) {
                 $monthStart = $vernalEquinox->copy()->addDays($moon['offset']);
@@ -53,13 +67,34 @@ class CustomCalendar
                     $dayDate = $monthStart->copy()->addDays($i)->toDateString();
                     $dayTideData = $noaaData[$dayDate][0] ?? null;
 
-                    $solunarData = $this->getSolunarData($station->latitude, $station->longitude, $dayDate);
+                    $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$dayDate}";
+                    $solunarData = $solunarBulk[$cacheKey] ?? null;
+
+                    // fallback to live fetch if not in cache
+                    if (!$solunarData) {
+                        $solunarData = $this->getSolunarData($station->latitude, $station->longitude, $dayDate);
+                    }
                     $solunarRating = $solunarData['calculatedRating'] ?? null;
+//                    $moonIcons = [
+//                        'New Moon' => '🌑',
+//                        'Waxing Crescent' => '🌒',
+//                        'First Quarter' => '🌓',
+//                        'Waxing Gibbous' => '🌔',
+//                        'Full Moon' => '🌕',
+//                        'Waning Gibbous' => '🌖',
+//                        'Last Quarter' => '🌗',
+//                        'Waning Crescent' => '🌘',
+//                    ];
+//
+//                    $moonPhaseKey = $solunarData['moonPhase'] ?? null;
+//
+//                    $moonIcon = $moonIcons[$moonPhaseKey] ?? null;
                     $monthDays[] = [
                         'date' => $dayDate,
                         'day_of_week' => Carbon::parse($dayDate)->format('l'),
                         'julian_day' => Carbon::parse($dayDate)->dayOfYear,
                         'gregorian_date' => Carbon::parse($dayDate)->format('M j, Y'),
+//                        'moon_phase' => $moonIcon." ".$moonPhaseKey,
                         'moon_phase' => $this->getMoonPhase($dayDate),
                         'is_today' => Carbon::parse($dayDate)->isToday(),
                         'tide_data' => $dayTideData ? $this->formatTideData($dayTideData) : null,
@@ -77,7 +112,7 @@ class CustomCalendar
             }
 
             $calendarData[$year] = [
-                'solar_events' => $this->formatSolarEvents($solarEvents[$year]),
+//                'solar_events' => $this->formatSolarEvents($solarEvents[$year]),
                 'is_leap_year' => $this->isLeapYear($year),
                 'months' => $months,
             ];
