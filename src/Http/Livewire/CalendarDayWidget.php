@@ -13,6 +13,7 @@ class CalendarDayWidget extends Component
     public $dayData;
     public $currentDate;
     public $stationId,$location;
+    public $widgetType='live';
 
     public function mount($widgetType,$date = null)
     {
@@ -26,10 +27,11 @@ class CalendarDayWidget extends Component
         $this->currentDate = $date ?? now()->toDateString();
 
         $this->currentDate = now()->toDateString();
-        if ($widgetType == 'live') {
+        $this->widgetType = $widgetType;
+        if ($this->widgetType == 'live') {
             $this->loadDayDataLive();
         }
-        elseif($widgetType == 'table') {
+        elseif($this->widgetType == 'table') {
             $this->loadDayData();
         }
 
@@ -57,18 +59,33 @@ class CalendarDayWidget extends Component
     public function nextDate()
     {
         $this->currentDate = Carbon::parse($this->currentDate)->addDay()->toDateString();
-        $this->loadDayData();
+        if ($this->widgetType == 'live') {
+            $this->loadDayDataLive();
+        }
+        elseif($this->widgetType == 'table') {
+            $this->loadDayData();
+        }
     }
 
     public function previousDate()
     {
         $this->currentDate = Carbon::parse($this->currentDate)->subDay()->toDateString();
-        $this->loadDayData();
+        if ($this->widgetType == 'live') {
+            $this->loadDayDataLive();
+        }
+        elseif($this->widgetType == 'table') {
+            $this->loadDayData();
+        }
     }
     public function goToToday()
     {
         $this->currentDate = now()->toDateString();
-        $this->loadDayData();
+        if ($this->widgetType == 'live') {
+            $this->loadDayDataLive();
+        }
+        elseif($this->widgetType == 'table') {
+            $this->loadDayData();
+        }
     }
     private function getUserLocation()
     {
