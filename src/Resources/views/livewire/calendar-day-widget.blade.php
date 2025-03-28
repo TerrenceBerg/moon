@@ -106,7 +106,7 @@
                                         <li><strong>Set:</strong> {{ $solunarData['sunSet'] }}</li>
                                     </ul>
                                 </div>
-
+                                <div class="d-lg-none"><hr></div>
                                 <!-- Moon Info -->
                                 <div class="col-md-4 mb-2">
                                     <h6 class="text-dark mb-1">🌙 Moon</h6>
@@ -118,7 +118,7 @@
                                         <li><strong>Illumination:</strong> {{ round($solunarData['moonIllumination'] * 100) }}%</li>
                                     </ul>
                                 </div>
-
+                                <div class="d-lg-none"><hr></div>
                                 <!-- Ratings -->
                                 <div class="col-md-4 mb-2">
                                     <h6 class="text-dark mb-1">🎯 Ratings</h6>
