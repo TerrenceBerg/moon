@@ -34,7 +34,7 @@
         </div>
 
         {{-- Tide & Solunar Info --}}
-        <ul class="list-unstyled mb-3 ps-1">
+        <ul class="list-unstyled mb-3 ps-1 text-center">
             <li class="mb-1">🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_phase'] }}</li>
 
             @if ($dayData['solunar_rating'])
@@ -61,7 +61,7 @@
 
         @if(isset($dayData['solunar_rating']))
             @php $rating = $dayData['solunar_rating']; @endphp
-            <div class="d-flex align-items-center">
+            <div class="d-flex justify-content-center">
                 <span class="me-2 text-dark fw-semibold">⭐ Rating:</span>
                 @for ($star = 1; $star <= 4; $star++)
                     @if ($rating >= $star)
@@ -75,7 +75,7 @@
             </div>
         @endif
 
-        <div class="text-end mt-3">
+        <div class="text-center mt-3">
             <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dayDetailsModal">
                 More Details
             </button>
@@ -90,7 +90,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 text-center">
                     <?php $solunarData=$dayData['solunar_data']; ?>
                     @if($solunarData)
                         <div class="container card rounded border-dark mb-3 p-3">
@@ -135,30 +135,18 @@
                                     </ul>
                                 </div>
                             </div>
-
                             <!-- Hourly Ratings -->
                             <hr class="my-3">
-                            <div class="mt-2">
+                            <div class="mt-2 text-center">
                                 <h6 class="fw-semibold mb-2">⏰ Hourly Activity Rating</h6>
-
                                 <!-- Color Legend -->
-                                <div class="mb-2 d-flex align-items-center flex-wrap small">
-                                    <div class="d-flex align-items-center me-3 mb-1">
-                                        <div class="rounded-circle bg-success me-2" style="width: 12px; height: 12px;"></div>
-                                        <span>High (40+)</span>
-                                    </div>
-                                    <div class="d-flex align-items-center me-3 mb-1">
-                                        <div class="rounded-circle bg-warning me-2" style="width: 12px; height: 12px;"></div>
-                                        <span>Moderate (20–39)</span>
-                                    </div>
-                                    <div class="d-flex align-items-center me-3 mb-1">
-                                        <div class="rounded-circle bg-light border me-2" style="width: 12px; height: 12px;"></div>
-                                        <span>Low (0–19)</span>
-                                    </div>
+                                <div class="d-flex justify-content-center mb-2">
+                                    <i class="bi bi-wind text-success"></i>&nbsp;<span>High (40+)</span>&nbsp;&nbsp;
+                                    <i class="bi bi-wind text-warning"></i>&nbsp;<span>Moderate (20–39)</span>&nbsp;&nbsp;
+                                    <i class="bi bi-wind text-light"></i>&nbsp;<span>Low (0–19)</span>
                                 </div>
-
                                 <!-- Hourly Rating Blocks -->
-                                <div class="d-flex flex-wrap">
+                                <div class="d-flex justify-content-center flex-wrap">
                                     @foreach($solunarData['hourlyRating'] as $hour => $rating)
                                         @php
                                             $color = match(true) {
