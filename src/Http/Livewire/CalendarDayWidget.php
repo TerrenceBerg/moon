@@ -14,7 +14,7 @@ class CalendarDayWidget extends Component
     public $currentDate;
     public $stationId,$location;
 
-    public function mount($date = null, $stationId = null)
+    public function mount($widgetType,$date = null)
     {
         $this->location = $this->getUserLocation();
         if (!$this->location) return response()->json(['error' => 'Unable to determine location.'], 400);
@@ -26,7 +26,13 @@ class CalendarDayWidget extends Component
         $this->currentDate = $date ?? now()->toDateString();
 
         $this->currentDate = now()->toDateString();
-        $this->loadDayData();
+        if ($widgetType == 'live') {
+            $this->loadDayDataLive();
+        }
+        elseif($widgetType == 'table') {
+            $this->loadDayData();
+        }
+
     }
 
     public function render()
@@ -34,12 +40,18 @@ class CalendarDayWidget extends Component
         return view('customcalendar::livewire.calendar-day-widget');
     }
 
-
-
     public function loadDayData()
     {
         $calendar = new CustomCalendar(null, $this->stationId);
         $this->dayData = $calendar->generateDayData($this->currentDate, $this->stationId);
+    }
+    public function loadDayDataLive()
+    {
+        $location=$this->getUserLocation();
+        $lat = $location['lat'];
+        $lon = $location['lon'];
+        $calendar = new CustomCalendar();
+        $this->dayData = $calendar->generateDayDataLive($lat,$lon,$this->currentDate);
     }
 
     public function nextDate()

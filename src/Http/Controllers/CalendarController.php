@@ -37,6 +37,16 @@ class CalendarController extends Controller
 
         return view('customcalendar::calendar');
     }
+    public function showCalendarWidgetTable(Request $request)
+    {
+        $type='table';
+        return view('customcalendar::calendar',compact('type'));
+    }
+    public function showCalendarWidgetLive(Request $request)
+    {
+        $type='live';
+        return view('customcalendar::calendar',compact('type'));
+    }
 
     private function getLocationFromIP($ip)
     {

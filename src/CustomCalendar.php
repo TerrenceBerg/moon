@@ -181,6 +181,28 @@ class CustomCalendar
         ];
     }
 
+    public function generateDayDataLive($lat, $lon, $date = null)
+    {
+        $date = Carbon::parse($date ?? now())->toDateString();
+
+        $moonPhase = $this->getMoonPhase($date);
+
+        $tideFetcher = new TideDataFetcher();
+        $tideData = $tideFetcher->fetchTideData($lat, $lon, $date);
+
+        $solunarData = $this->getSolunarData($lat, $lon, $date);
+        return [
+            'date' => $date,
+            'gregorian_date' => Carbon::parse($date)->format('l, M j, Y'),
+            'julian_day' => Carbon::parse($date)->dayOfYear,
+            'is_today' => Carbon::parse($date)->isToday(),
+            'moon_phase' => $moonPhase,
+            'all_data' => $tideData,
+            'solunar_rating' => $solunarData['calculatedRating'] ?? null,
+            'solunar_data' => $solunarData ?? null,
+        ];
+    }
+
     private function getMoonPhases()
     {
         return [
@@ -243,8 +265,6 @@ class CustomCalendar
             'sunset' => $data->sunset
         ];
     }
-
-
 
     public function getSolunarData($lat, $lng, $date, $offset = -4)
     {

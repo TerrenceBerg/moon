@@ -95,8 +95,11 @@
 <body>
 
 <div class="container">
-{{--    <livewire:custom-calendar  />--}}
-    <livewire:custom-calendar-day-widget  />
+    @if(isset($type))
+        <livewire:custom-calendar-day-widget :widgetType="$type" />
+    @else
+        <livewire:custom-calendar  />
+    @endif
 </div>
 
 
