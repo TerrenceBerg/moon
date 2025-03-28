@@ -14,11 +14,13 @@ class CustomCalendar
 {
     protected $year;
     protected $stationId;
+    protected $selectedStation;
 
     public function __construct($year = null, $stationId = null)
     {
         $this->year = $year ?? Carbon::now()->year;
         $this->stationId = $stationId;
+        $this->selectedStation = NOAAStation::find($this->stationId);
     }
 
     public function generateCalendar($year = null, $stationId = null)

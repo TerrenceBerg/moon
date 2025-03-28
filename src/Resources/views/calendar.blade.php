@@ -95,8 +95,8 @@
 <body>
 
 <div class="container">
-    <livewire:custom-calendar  />
-{{--    <livewire:custom-calendar-day-widget  />--}}
+{{--    <livewire:custom-calendar  />--}}
+    <livewire:custom-calendar-day-widget  />
 </div>
 
 

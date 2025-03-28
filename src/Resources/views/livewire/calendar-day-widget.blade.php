@@ -1,78 +1,92 @@
-<div>
+<div wire:loading.class="opacity-50" wire:target="previousDate,nextDate,goToToday">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Widget Card -->
-    <div class="card p-4 shadow-sm rounded-4 border-0 bg-white">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h5 class="fw-semibold text-primary mb-1">
-                    📅 {{ $dayData['gregorian_date'] }}
-                </h5>
-                <p class="text-muted mb-0 small">Daily summary for this date</p>
-            </div>
 
-            <button class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#dayDetailsModal">
-                More Details
+    <div class="card shadow-sm rounded-4 border-0 bg-white p-4 position-relative">
+        {{-- Loading Spinner Overlay --}}
+        <div wire:loading wire:target="previousDate,nextDate,goToToday" class="position-absolute top-50 start-50 translate-middle">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        {{-- Navigation --}}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3"
+                    wire:click="previousDate"
+                    wire:loading.attr="disabled">
+                <i class="bi bi-chevron-left"></i> Prev
+            </button>
+
+            <h5 class="mb-0 fw-semibold text-primary text-center"
+                role="button"
+                style="cursor: pointer"
+                wire:click="goToToday"
+                wire:loading.attr="disabled">
+                📅 {{ $dayData['gregorian_date'] }}
+                <small class="text-muted d-block" style="font-size: 12px;">Click to go to Today</small>
+            </h5>
+
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3"
+                    wire:click="nextDate"
+                    wire:loading.attr="disabled">
+                Next <i class="bi bi-chevron-right"></i>
             </button>
         </div>
 
-        <ul class="list-unstyled mb-0">
-            <li class="mb-2 d-flex align-items-center">
-                <span class="me-2 fs-5">🌕</span>
-                <span><strong>Moon Phase:</strong> {{ $dayData['moon_phase'] }}</span>
-            </li>
+        {{-- Tide & Solunar Info --}}
+        <ul class="list-unstyled mb-3 ps-1">
+            <li class="mb-1">🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_phase'] }}</li>
 
-            @if(isset($dayData['solunar_rating']))
-                @php
-                    $rating = $dayData['solunar_rating'];
-                @endphp
-
-                <div class="mt-3 d-flex align-items-center">
-        <span class="me-2 text-dark fw-semibold">
-            🎯 Solunar Rating:
-        </span>
-                    <div>
-                        @for ($star = 1; $star <= 4; $star++)
-                            @if ($rating >= $star)
-                                <i class="bi bi-star-fill text-warning"></i>
-                            @elseif ($rating >= $star - 0.5)
-                                <i class="bi bi-star-half text-warning"></i>
-                            @else
-                                <i class="bi bi-star text-muted"></i>
-                            @endif
-                        @endfor
-                    </div>
-                    <span class="ms-2 small text-muted">({{ number_format($rating, 1) }} / 4.0)</span>
-                </div>
-                <br>
+            @if ($dayData['solunar_rating'])
+                <li class="mb-1">🎯 <strong>Solunar Rating:</strong>
+                    {{ number_format($dayData['solunar_rating'], 1) }} / 4.0
+                </li>
             @endif
 
             @if ($dayData['all_data'])
-                <li class="mb-2 d-flex align-items-center">
-                    <span class="me-2 fs-5">🌊</span>
-                    <span>
-                    <strong>High Tide:</strong> {{ $dayData['all_data']['high_tide_time'] }}
+                <li class="mb-1">
+                    🌊 <strong>High Tide:</strong>
+                    {{ $dayData['all_data']['high_tide_time'] }}
                     ({{ $dayData['all_data']['high_tide_level'] }}m)
-                </span>
                 </li>
-                <li class="d-flex align-items-center">
-                    <span class="me-2 fs-5">🏖️</span>
-                    <span>
-                    <strong>Low Tide:</strong> {{ $dayData['all_data']['low_tide_time'] }}
+                <li class="mb-1">
+                    🏖️ <strong>Low Tide:</strong>
+                    {{ $dayData['all_data']['low_tide_time'] }}
                     ({{ $dayData['all_data']['low_tide_level'] }}m)
-                </span>
                 </li>
             @else
-                <li class="text-muted fst-italic">No tide data available.</li>
+                <li class="text-muted"><em>No tide data available.</em></li>
             @endif
         </ul>
+
+        @if(isset($dayData['solunar_rating']))
+            @php $rating = $dayData['solunar_rating']; @endphp
+            <div class="d-flex align-items-center">
+                <span class="me-2 text-dark fw-semibold">⭐ Rating:</span>
+                @for ($star = 1; $star <= 4; $star++)
+                    @if ($rating >= $star)
+                        <i class="bi bi-star-fill text-warning"></i>
+                    @elseif ($rating >= $star - 0.5)
+                        <i class="bi bi-star-half text-warning"></i>
+                    @else
+                        <i class="bi bi-star text-muted"></i>
+                    @endif
+                @endfor
+            </div>
+        @endif
+
+        <div class="text-end mt-3">
+            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dayDetailsModal">
+                More Details
+            </button>
+        </div>
     </div>
-    <!-- Modal -->
     <div wire:ignore.self class="modal fade" id="dayDetailsModal" tabindex="-1" aria-labelledby="dayDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content rounded-4">
                 <div class="modal-header bg-gradient text-white"
                      style="background: linear-gradient(to right, #1e3c72, #2a5298);">
-                    <h5 class="modal-title text-white">🌙 Astronomical Data for </h5>
+                    <h5 class="modal-title text-primary">🌙 Astronomical Data for <b>{{ \Carbon\Carbon::parse($currentDate)->format('M j, Y')}} </b> </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
@@ -193,4 +207,5 @@
             </div>
         </div>
     </div>
+
 </div>
