@@ -17,6 +17,13 @@
                 <i class="bi bi-chevron-left"></i> Prev
             </button>
 
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3"
+                    wire:click="nextDate"
+                    wire:loading.attr="disabled">
+                Next <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+        <div class="row mb-3">
             <h5 class="mb-0 fw-semibold text-primary text-center"
                 role="button"
                 style="cursor: pointer"
@@ -25,12 +32,6 @@
                 📅 {{ $dayData['gregorian_date'] }}
                 <small class="text-muted d-block" style="font-size: 12px;">Click to go to Today</small>
             </h5>
-
-            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3"
-                    wire:click="nextDate"
-                    wire:loading.attr="disabled">
-                Next <i class="bi bi-chevron-right"></i>
-            </button>
         </div>
 
         {{-- Tide & Solunar Info --}}
