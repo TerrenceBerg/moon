@@ -80,7 +80,7 @@
         @endif
 
         <div class="text-center mt-3">
-            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dayDetailsModal">
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dayDetailsModal">
                 More Details
             </button>
         </div>
