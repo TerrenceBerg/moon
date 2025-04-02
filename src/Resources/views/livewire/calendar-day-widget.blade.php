@@ -10,7 +10,7 @@
         </div>
 
         {{-- Navigation --}}
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
             <button class="btn btn-outline-secondary btn-sm rounded-pill px-3"
                     wire:click="previousDate"
                     wire:loading.attr="disabled">
@@ -23,7 +23,7 @@
                 Next <i class="bi bi-chevron-right"></i>
             </button>
         </div>
-        <div class="text-center mt-3">
+        <div class="text-center mb-2">
             <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dayDetailsModal">
                 More Details
             </button>
