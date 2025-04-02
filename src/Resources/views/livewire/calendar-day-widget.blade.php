@@ -10,15 +10,16 @@
         </div>
 
         {{-- Navigation --}}
+        
+        <div class="mb-0 fw-semibold text-dark text-center"
+            role="button"
+            style="cursor: pointer"
+            wire:click="goToToday"
+            wire:loading.attr="disabled">
+            📅 {{ $dayData['gregorian_date'] }}
+            <small class="text-muted d-block" style="font-size: 12px;">Click to go to Today</small>
+        </div>
         <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="mb-0 fw-semibold text-dark text-center"
-                role="button"
-                style="cursor: pointer"
-                wire:click="goToToday"
-                wire:loading.attr="disabled">
-                📅 {{ $dayData['gregorian_date'] }}
-                <small class="text-muted d-block" style="font-size: 12px;">Click to go to Today</small>
-            </div>
             <button class="btn btn-outline-secondary btn-sm rounded-pill px-3"
                     wire:click="previousDate"
                     wire:loading.attr="disabled">
