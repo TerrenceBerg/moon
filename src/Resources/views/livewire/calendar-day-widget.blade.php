@@ -83,6 +83,9 @@
             <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dayDetailsModal">
                 More Details
             </button>
+            <a class="btn btn-warning btn-sm" href="{{route('moon-calendar')}}">
+                Full Calendar
+            </a>
         </div>
     </div>
     <div wire:ignore.self class="modal fade" id="dayDetailsModal" tabindex="-1" aria-labelledby="dayDetailsModalLabel" aria-hidden="true">
