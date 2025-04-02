@@ -20,7 +20,9 @@ class CustomCalendar
     {
         $this->year = $year ?? Carbon::now()->year;
         $this->stationId = $stationId;
-        $this->selectedStation = NOAAStation::find($this->stationId);
+        if (isset($stationId)) {
+            $this->selectedStation = NOAAStation::find($this->stationId);
+        }
     }
 
     public function generateCalendar($year = null, $stationId = null)
