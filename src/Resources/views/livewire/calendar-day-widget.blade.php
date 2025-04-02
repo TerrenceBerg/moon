@@ -24,8 +24,8 @@
             </button>
         </div>
         <div class="row mb-3">
-            <span class="mb-0 fw-semibold text-dark text-center">📍 Location: <strong>{{$location['city']}}</strong></span>
-            <span class="mb-0 fw-semibold text-dark text-center">🌍 Nearest NOAA Station: <strong>{{ $dayData['station_name'] }}</strong></span>
+            <div class="mb-0 fw-semibold text-dark text-center">📍 Location: <strong>{{$location['city']}}</strong></div>
+            <div class="mb-0 fw-semibold text-dark text-center">🌍 Nearest NOAA Station: <strong>{{ $dayData['station_name'] }}</strong></div>
 
             <h6 class="mb-0 fw-semibold text-dark text-center"
                 role="button"
