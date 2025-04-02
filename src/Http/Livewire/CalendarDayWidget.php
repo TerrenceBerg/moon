@@ -17,16 +17,9 @@ class CalendarDayWidget extends Component
 
     public function mount($widgetType,$date = null)
     {
-        $this->location = $this->getUserLocation();
-        if (!$this->location) return response()->json(['error' => 'Unable to determine location.'], 400);
-
-        $nearestStation = NOAAStation::getNearestStation($this->location['lat'], $this->location['lon']);
-        if (!$nearestStation) return response()->json(['error' => 'No station found.'], 404);
-
-        $this->stationId = $nearestStation->id ?? 1;
         $this->currentDate = $date ?? now()->toDateString();
 
-        $this->currentDate = now()->toDateString();
+
         $this->widgetType = $widgetType;
         if ($this->widgetType == 'live') {
             $this->loadDayDataLive();
@@ -44,6 +37,14 @@ class CalendarDayWidget extends Component
 
     public function loadDayData()
     {
+        $this->location = $this->getUserLocation();
+        if (!$this->location) return response()->json(['error' => 'Unable to determine location.'], 400);
+
+        $nearestStation = NOAAStation::getNearestStation($this->location['lat'], $this->location['lon']);
+        if (!$nearestStation) return response()->json(['error' => 'No station found.'], 404);
+
+        $this->stationId = $nearestStation->id ?? 1;
+        
         $calendar = new CustomCalendar(null, $this->stationId);
         $this->dayData = $calendar->generateDayData($this->currentDate, $this->stationId);
     }
