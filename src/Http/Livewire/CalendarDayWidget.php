@@ -44,13 +44,14 @@ class CalendarDayWidget extends Component
         if (!$nearestStation) return response()->json(['error' => 'No station found.'], 404);
 
         $this->stationId = $nearestStation->id ?? 1;
-        
+
         $calendar = new CustomCalendar(null, $this->stationId);
         $this->dayData = $calendar->generateDayData($this->currentDate, $this->stationId);
     }
     public function loadDayDataLive()
     {
         $location=$this->getUserLocation();
+        $this->location = $this->getUserLocation();
         $lat = $location['lat'];
         $lon = $location['lon'];
         $calendar = new CustomCalendar();

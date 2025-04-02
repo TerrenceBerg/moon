@@ -24,7 +24,10 @@
             </button>
         </div>
         <div class="row mb-3">
-            <h5 class="mb-0 fw-semibold text-primary text-center"
+            <h4 class="text-primary mb-1">📍 Location: <strong>{{$location['city']}}</strong></h4>
+            <h5 class="text-muted mb-2">🌍 Nearest NOAA Station: <strong>{{ $dayData['station_name'] }}</strong></h5>
+            
+            <h5 class="mb-0 fw-semibold text-dark text-center"
                 role="button"
                 style="cursor: pointer"
                 wire:click="goToToday"
