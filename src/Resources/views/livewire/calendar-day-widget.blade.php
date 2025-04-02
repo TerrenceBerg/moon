@@ -11,6 +11,11 @@
 
         {{-- Navigation --}}
         <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="text-center mb-3">
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dayDetailsModal">
+                    More Details
+                </button>
+            </div>
             <button class="btn btn-outline-secondary btn-sm rounded-pill px-3"
                     wire:click="previousDate"
                     wire:loading.attr="disabled">
@@ -24,17 +29,16 @@
             </button>
         </div>
         <div class="row mb-3">
-            <small class="mb-0 fw-semibold text-dark text-center">📍 Location: <strong>{{$location['city']}}</strong></small>
-            <small class="mb-0 fw-semibold text-dark text-center">🌍 Nearest NOAA Station: <strong>{{ $dayData['station_name'] }}</strong></small>
-
-            <h6 class="mb-0 fw-semibold text-dark text-center"
+            <div class="mb-0 fw-semibold text-dark text-center"
                 role="button"
                 style="cursor: pointer"
                 wire:click="goToToday"
                 wire:loading.attr="disabled">
                 📅 {{ $dayData['gregorian_date'] }}
                 <small class="text-muted d-block" style="font-size: 12px;">Click to go to Today</small>
-            </h6>
+            </div>
+            <small class="mb-0 fw-semibold text-dark text-center">📍 Location: <strong>{{$location['city']}}</strong></small>
+            <small class="mb-0 fw-semibold text-dark text-center">🌍 Nearest NOAA Station: <strong>{{ $dayData['station_name'] }}</strong></small>
         </div>
 
         {{-- Tide & Solunar Info --}}
@@ -80,9 +84,6 @@
         @endif
 
         <div class="text-center mt-3">
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dayDetailsModal">
-                More Details
-            </button>
             <a class="btn btn-warning btn-sm" href="{{route('moon-calendar')}}">
                 Full Calendar
             </a>
