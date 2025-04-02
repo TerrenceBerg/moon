@@ -11,6 +11,14 @@
 
         {{-- Navigation --}}
         <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="mb-0 fw-semibold text-dark text-center"
+                role="button"
+                style="cursor: pointer"
+                wire:click="goToToday"
+                wire:loading.attr="disabled">
+                📅 {{ $dayData['gregorian_date'] }}
+                <small class="text-muted d-block" style="font-size: 12px;">Click to go to Today</small>
+            </div>
             <button class="btn btn-outline-secondary btn-sm rounded-pill px-3"
                     wire:click="previousDate"
                     wire:loading.attr="disabled">
@@ -29,14 +37,6 @@
             </button>
         </div>
         <div class="row mb-3">
-            <div class="mb-0 fw-semibold text-dark text-center"
-                role="button"
-                style="cursor: pointer"
-                wire:click="goToToday"
-                wire:loading.attr="disabled">
-                📅 {{ $dayData['gregorian_date'] }}
-                <small class="text-muted d-block" style="font-size: 12px;">Click to go to Today</small>
-            </div>
             <small class="mb-0 fw-semibold text-dark text-center">📍 Location: <strong>{{$location['city']}}</strong></small>
             <small class="mb-0 fw-semibold text-dark text-center">🌍 Nearest NOAA Station: <strong>{{ $dayData['station_name'] }}</strong></small>
         </div>
