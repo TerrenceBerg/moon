@@ -31,17 +31,17 @@
             <div class="accordion" id="yearAccordion">
                 @foreach ($calendarData as $year => $data)
                     <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading-{{ $year }}">
-                            <button class="accordion-button " type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapse-{{ $year }}"
-                                    aria-controls="collapse-{{ $year }}">
+                        <h2 class="text-center" id="heading-{{ $year }}">
+{{--                            <button class="accordion-button " type="button"--}}
+{{--                                    data-bs-toggle="collapse" data-bs-target="#collapse-{{ $year }}"--}}
+{{--                                    aria-controls="collapse-{{ $year }}">--}}
                                 Year {{ $year }}
-                            </button>
+{{--                            </button>--}}
                         </h2>
-                        <div id="collapse-{{ $year }}"
-                             class="accordion-collapse collapse "
-                             aria-labelledby="heading-{{ $year }}" data-bs-parent="#yearAccordion">
-                            <div class="accordion-body">
+{{--                        <div id="collapse-{{ $year }}"--}}
+{{--                             class="accordion-collapse collapse "--}}
+{{--                             aria-labelledby="heading-{{ $year }}" data-bs-parent="#yearAccordion">--}}
+{{--                            <div class="accordion-body">--}}
                                 <div class="row">
                                     @foreach ($data['months'] as $index=>$month)
                                         <div class="calendar-month col-lg-12 col-md-12 col-sm-12 mt-4"
@@ -110,8 +110,8 @@
                                         </div>
                                     @endforeach
                                 </div>
-                            </div>
-                        </div>
+{{--                            </div>--}}
+{{--                        </div>--}}
                     </div>
                 @endforeach
             </div>
@@ -529,30 +529,30 @@
         });
 
         function load_view() {
-            const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
-
-            const dateCell = document.querySelector(`[data-date="${todayStr}"]`);
-
-            if (dateCell) {
-                const collapseEl = dateCell.closest('.accordion-collapse');
-                const accordionItem = collapseEl.closest('.accordion-item');
-                const accordionButton = accordionItem.querySelector('.accordion-button');
-
-                document.querySelectorAll('.accordion-collapse').forEach(el => el.classList.remove('show'));
-                document.querySelectorAll('.accordion-button').forEach(btn => {
-                    btn.classList.add('collapsed');
-                    btn.setAttribute('aria-expanded', 'false');
-                });
-
-                if (collapseEl) {
-                    collapseEl.classList.add('show');
-                }
-                if (accordionButton) {
-                    accordionButton.classList.remove('collapsed');
-                    accordionButton.setAttribute('aria-expanded', 'true');
-                }
-            }
+            // const today = new Date();
+            // const todayStr = today.toISOString().split('T')[0];
+            //
+            // const dateCell = document.querySelector(`[data-date="${todayStr}"]`);
+            //
+            // if (dateCell) {
+            //     const collapseEl = dateCell.closest('.accordion-collapse');
+            //     const accordionItem = collapseEl.closest('.accordion-item');
+            //     const accordionButton = accordionItem.querySelector('.accordion-button');
+            //
+            //     document.querySelectorAll('.accordion-collapse').forEach(el => el.classList.remove('show'));
+            //     document.querySelectorAll('.accordion-button').forEach(btn => {
+            //         btn.classList.add('collapsed');
+            //         btn.setAttribute('aria-expanded', 'false');
+            //     });
+            //
+            //     if (collapseEl) {
+            //         collapseEl.classList.add('show');
+            //     }
+            //     if (accordionButton) {
+            //         accordionButton.classList.remove('collapsed');
+            //         accordionButton.setAttribute('aria-expanded', 'true');
+            //     }
+            // }
 
             setTimeout(() => {
                 const todayElement = document.querySelector('.calendar-day[style*="background-color: lightgreen"]');

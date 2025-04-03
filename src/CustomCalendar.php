@@ -31,7 +31,7 @@ class CustomCalendar
         $currentYear = $year ?? Carbon::now()->year;
         $stationId = $stationId ?? $this->stationId;
         $station = NOAAStation::where('id', $stationId)->firstOrFail();
-        $yearRange = [$currentYear-1, $currentYear];
+        $yearRange = [$currentYear, $currentYear];
         $calendarData = [];
 
         $solarEvents = SolarEvent::whereIn('year', $yearRange)->pluck('march_equinox', 'year');
