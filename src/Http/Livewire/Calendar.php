@@ -168,14 +168,31 @@ class Calendar extends Component
 
     private function fetchWeather($date)
     {
-        $url = "https://api.open-meteo.com/v1/forecast?latitude={$this->selectedStation->latitude}&longitude={$this->selectedStation->longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=auto&start_date={$date}&end_date={$date}";
-        $data = json_decode(file_get_contents($url), true)['daily'] ?? null;
-        return $data ? [
-            'max_temp' => $data['temperature_2m_max'][0] ?? null,
-            'min_temp' => $data['temperature_2m_min'][0] ?? null,
-            'precipitation' => $data['precipitation_sum'][0] ?? null,
-            'weather_code' => $data['weathercode'][0] ?? null
-        ] : null;
+        try {
+            $url = "https://api.open-meteo.com/v1/forecast?latitude={$this->selectedStation->latitude}&longitude={$this->selectedStation->longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=auto&start_date={$date}&end_date={$date}";
+            $response = file_get_contents($url);
+
+            if ($response === false) {
+                throw new \Exception("Failed to fetch weather data from Open Meteo API.");
+            }
+
+            $data = json_decode($response, true)['daily'] ?? null;
+
+            if (!$data) {
+                throw new \Exception("No weather data found for the given date.");
+            }
+
+            return [
+                'max_temp' => $data['temperature_2m_max'][0] ?? null,
+                'min_temp' => $data['temperature_2m_min'][0] ?? null,
+                'precipitation' => $data['precipitation_sum'][0] ?? null,
+                'weather_code' => $data['weathercode'][0] ?? null,
+            ];
+
+        } catch (\Exception $e) {
+            \Log::error("Weather fetch error: " . $e->getMessage());
+            return null;
+        }
     }
 
     private function getUserLocation()
@@ -217,38 +234,42 @@ class Calendar extends Component
 
     public function getTideData($date)
     {
-        $startDate = Carbon::parse($date);
-        $endDate = $startDate->copy();
-        $products = ['predictions'];
-        $noaaApiUrl = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter";
-        foreach ($products as $product) {
-            $response = Http::get($noaaApiUrl, [
-                'begin_date' => $startDate->format('Ymd'),
-                'end_date' => $endDate->format('Ymd'),
-                'station' => $this->selectedStation->station_id,
-                'product' => $product,
-                'datum' => 'MLLW',
-                'time_zone' => 'gmt',
-                'units' => 'metric',
-                'format' => 'json'
-            ]);
+        try {
+            $startDate = Carbon::parse($date);
+            $endDate = $startDate->copy();
+            $products = ['predictions'];
+            $noaaApiUrl = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter";
 
-            if ($response->failed()) {
-                continue;
+            foreach ($products as $product) {
+                $response = Http::get($noaaApiUrl, [
+                    'begin_date' => $startDate->format('Ymd'),
+                    'end_date' => $endDate->format('Ymd'),
+                    'station' => $this->selectedStation->station_id,
+                    'product' => $product,
+                    'datum' => 'MLLW',
+                    'time_zone' => 'gmt',
+                    'units' => 'metric',
+                    'format' => 'json'
+                ]);
+
+                if ($response->failed()) {
+                    continue;
+                }
+
+                $data = $response->json();
+
+                if (!isset($data['predictions']) && !isset($data['data'])) {
+                    continue;
+                }
+
+                match ($product) {
+                    'predictions' => $this->storeTideData($data['predictions'], $this->selectedStationId)
+                };
             }
-
-            $data = $response->json();
-
-            if (!isset($data['predictions']) && !isset($data['data'])) {
-                continue;
-            }
-
-            match ($product) {
-                'predictions' => $this->storeTideData($data['predictions'], $this->selectedStationId)
-            };
+        } catch (\Exception $e) {
+            \Log::error("Error fetching tide data: " . $e->getMessage());
         }
     }
-
     private function storeTideData($predictions, $stationId)
     {
         $tideData = [];
@@ -292,24 +313,28 @@ class Calendar extends Component
 
     public function fetchCurrentsData($stationId, $date)
     {
+        try {
+            $response = Http::get('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter', [
+                'station' => $stationId,
+                'product' => 'currents_predictions',
+                'date' => $date,
+                'datum' => 'MLLW',
+                'units' => 'metric',
+                'time_zone' => 'gmt',
+                'interval' => 'h',
+                'format' => 'json',
+            ]);
 
-        $response = Http::get('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter', [
-            'station' => $stationId,
-            'product' => 'currents_predictions',
-            'date' => $date,
-            'datum' => 'MLLW',
-            'units' => 'metric',
-            'time_zone' => 'gmt',
-            'interval' => 'h',
-            'format' => 'json',
-        ]);
+            if ($response->successful()) {
+                return $response->json();
+            }
 
+            return null;
 
-        if ($response->successful()) {
-            return $response->json();
+        } catch (\Exception $e) {
+            \Log::error("Currents data fetch error: " . $e->getMessage());
+            return null;
         }
-
-        return null;
     }
 //    public function fetchAllNoaaProducts($stationId, $date)
 //    {
