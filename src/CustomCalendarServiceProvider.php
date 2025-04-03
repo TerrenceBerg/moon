@@ -38,6 +38,11 @@ class CustomCalendarServiceProvider extends ServiceProvider
             __DIR__.'/Config/customcalendar.php' => config_path('customcalendar.php'),
         ], 'config');
 
+        // ✅ Publish Livewire Component Views
+        $this->publishes([
+            __DIR__.'/Resources/views/livewire' => resource_path('views/vendor/customcalendar/livewire'),
+        ], 'customcalendar-views');
+
         // ✅ Load Controllers (Ensure correct path)
         $this->loadControllers();
 
