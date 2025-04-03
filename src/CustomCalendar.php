@@ -272,81 +272,111 @@ class CustomCalendar
     public function getSolunarData($lat, $lng, $date, $offset = -4)
     {
         $cacheKey = "solunar_rating_{$lat}_{$lng}_{$date}";
+
         // Check cache
-        $cachedData = Cache::get($cacheKey);
-        if ($cachedData) {
+        if ($cachedData = Cache::get($cacheKey)) {
             return $cachedData;
         }
+
         try {
             $formattedDate = Carbon::parse($date)->format('Ymd');
             $url = "https://api.solunar.org/solunar/{$lat},{$lng},{$formattedDate},{$offset}";
-            $client = new Client();
+
+            $client = new Client([
+                'timeout' => 10, // Set a timeout to avoid hanging requests
+            ]);
+
             $response = $client->get($url);
             $data = json_decode($response->getBody(), true);
+
             if (!$data || !isset($data['hourlyRating'])) {
+                \Log::error("Solunar API returned invalid data for {$lat}, {$lng} on {$date}");
                 return null;
             }
+
             $hourly = $data['hourlyRating'];
             $totalHours = count($hourly);
             $totalRating = array_sum($hourly);
             $maxPossible = $totalHours * 100;
             $normalized = $maxPossible > 0 ? ($totalRating / $maxPossible) : 0;
             $starRating = round($normalized * 4, 1);
+
             $data['calculatedRating'] = $starRating;
+
+            // Store in cache for 30 days
             Cache::put($cacheKey, $data, now()->addDays(30));
 
             return $data;
-
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            \Log::error("Error fetching Solunar data: " . $e->getMessage());
             return null;
         }
     }
-
     private function fetchWeather($date)
     {
-        $url = "https://api.open-meteo.com/v1/forecast?latitude={$this->selectedStation->latitude}&longitude={$this->selectedStation->longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=auto&start_date={$date}&end_date={$date}";
-        $data = json_decode(file_get_contents($url), true)['daily'] ?? null;
-        return $data ? [
-            'max_temp' => $data['temperature_2m_max'][0] ?? null,
-            'min_temp' => $data['temperature_2m_min'][0] ?? null,
-            'precipitation' => $data['precipitation_sum'][0] ?? null,
-            'weather_code' => $data['weathercode'][0] ?? null
-        ] : null;
+        try {
+            $url = "https://api.open-meteo.com/v1/forecast?latitude={$this->selectedStation->latitude}&longitude={$this->selectedStation->longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=auto&start_date={$date}&end_date={$date}";
+
+            $response = Http::timeout(10)->get($url);
+
+            if ($response->failed()) {
+                \Log::error("Failed to fetch weather data for {$date}. API response: " . $response->body());
+                return null;
+            }
+
+            $data = $response->json()['daily'] ?? null;
+
+            return $data ? [
+                'max_temp' => $data['temperature_2m_max'][0] ?? null,
+                'min_temp' => $data['temperature_2m_min'][0] ?? null,
+                'precipitation' => $data['precipitation_sum'][0] ?? null,
+                'weather_code' => $data['weathercode'][0] ?? null
+            ] : null;
+        } catch (\Throwable $e) {
+            \Log::error("Error fetching weather data: " . $e->getMessage());
+            return null;
+        }
     }
     public function getTideData($date)
     {
-        $startDate = Carbon::parse($date);
-        $endDate = $startDate->copy();
-        $products = ['predictions'];
-        $noaaApiUrl = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter";
-        foreach ($products as $product) {
-            $response = Http::get($noaaApiUrl, [
-                'begin_date' => $startDate->format('Ymd'),
-                'end_date' => $endDate->format('Ymd'),
-                'station' => $this->selectedStation->station_id,
-                'product' => $product,
-                'datum' => 'MLLW',
-                'time_zone' => 'gmt',
-                'units' => 'metric',
-                'format' => 'json'
-            ]);
+        try {
+            $startDate = Carbon::parse($date);
+            $endDate = $startDate->copy();
+            $products = ['predictions'];
+            $noaaApiUrl = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter";
 
-            if ($response->failed()) {
-                continue;
+            foreach ($products as $product) {
+                $response = Http::timeout(10)->get($noaaApiUrl, [
+                    'begin_date' => $startDate->format('Ymd'),
+                    'end_date' => $endDate->format('Ymd'),
+                    'station' => $this->selectedStation->station_id ?? null,
+                    'product' => $product,
+                    'datum' => 'MLLW',
+                    'time_zone' => 'gmt',
+                    'units' => 'metric',
+                    'format' => 'json'
+                ]);
+
+                if ($response->failed()) {
+                    \Log::error("Failed to fetch tide data for product: $product on date: $date");
+                    continue;
+                }
+
+                $data = $response->json();
+
+                if (!isset($data['predictions']) && !isset($data['data'])) {
+                    \Log::error("Invalid tide data format received for product: $product on date: $date");
+                    continue;
+                }
+
+                match ($product) {
+                    'predictions' => $this->storeTideData($data['predictions'], $this->selectedStationId)
+                };
             }
-
-            $data = $response->json();
-
-            if (!isset($data['predictions']) && !isset($data['data'])) {
-                continue;
-            }
-
-            match ($product) {
-                'predictions' => $this->storeTideData($data['predictions'], $this->selectedStationId)
-            };
+        } catch (\Throwable $e) {
+            \Log::error("Error fetching tide data: " . $e->getMessage());
         }
     }
-
     private function storeTideData($predictions, $stationId)
     {
         $tideData = [];
