@@ -117,32 +117,39 @@ class CalendarDayWidget extends Component
     {
         $ip = request()->ip();
 
+        $defaultLocation = [
+            'lat' => 34.0522,
+            'lon' => -118.2437,
+            'city' => 'Los Angeles'
+        ];
         if (in_array($ip, ['127.0.0.1', '::1'])) {
-            return [
-                'lat' => 34.0522,
-                'lon' => -118.2437,
-                'city' => 'Los Angeles'
-            ];
+            return $defaultLocation;
         }
-        return cache()->remember("ip-location-{$ip}", now()->addDay(), function () use ($ip) {
+
+        return cache()->remember("ip-location-{$ip}", now()->addDay(), function () use ($ip, $defaultLocation) {
             try {
                 $response = Http::timeout(5)->get("https://ipwho.is/{$ip}");
 
                 if ($response->failed() || !$response->json('success')) {
                     \Log::warning("IP lookup failed for IP: {$ip}");
-                    return null;
+                    return $defaultLocation;
                 }
 
                 $data = $response->json();
+                
+                if (empty($data['latitude']) || empty($data['longitude']) || empty($data['city'])) {
+                    \Log::warning("Incomplete location data for IP: {$ip}");
+                    return $defaultLocation;
+                }
 
                 return [
-                    'lat' => $data['latitude'] ?? 0,
-                    'lon' => $data['longitude'] ?? 0,
-                    'city' => $data['city'] ?? 'Unknown'
+                    'lat' => $data['latitude'],
+                    'lon' => $data['longitude'],
+                    'city' => $data['city']
                 ];
             } catch (\Exception $e) {
                 \Log::error("Failed to fetch user location for IP {$ip}: " . $e->getMessage());
-                return null;
+                return $defaultLocation;
             }
         });
     }
