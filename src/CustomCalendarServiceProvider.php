@@ -46,7 +46,7 @@ class CustomCalendarServiceProvider extends ServiceProvider
         // ✅ Load Controllers (Ensure correct path)
         $this->loadControllers();
 
-        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/Database/migrations');
         $this->commands([ImportDataCommand::class,FetchNOAADataCommand::class,FetchNOAAStationsCommand::class,FetchNOAACurrentStations::class,FetchNoaaCurrents::class,MatchNoaaCurrentStations::class]);
     }
 
