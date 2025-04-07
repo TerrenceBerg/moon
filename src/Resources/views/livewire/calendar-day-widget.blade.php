@@ -10,7 +10,7 @@
         </div>
 
         {{-- Navigation --}}
-        
+
         <div class="mb-0 fw-semibold text-dark text-center"
             role="button"
             style="cursor: pointer"
@@ -37,9 +37,17 @@
                 More Details
             </button>
         </div>
-        <div class="row mb-3">
-            <small class="mb-0 fw-semibold text-dark text-center">📍 Location: <strong>{{$location['city']}}</strong></small>
-            <small class="mb-0 fw-semibold text-dark text-center">🌍 Nearest NOAA Station: <strong>{{ $dayData['station_name'] }}</strong></small>
+        <div class="row mb-3">@isset($location['city'])
+                <small class="mb-0 fw-semibold text-dark text-center">
+                    📍 Location: <strong>{{ $location['city'] }}</strong>
+                </small>
+            @endisset
+
+            @isset($dayData['station_name'])
+                <small class="mb-0 fw-semibold text-dark text-center">
+                    🌍 Nearest NOAA Station: <strong>{{ $dayData['station_name'] }}</strong>
+                </small>
+            @endisset
         </div>
 
         {{-- Tide & Solunar Info --}}
