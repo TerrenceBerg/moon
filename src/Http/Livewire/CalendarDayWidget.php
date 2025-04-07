@@ -89,28 +89,62 @@ class CalendarDayWidget extends Component
             $this->loadDayData();
         }
     }
+//    private function getUserLocation()
+//    {
+//        $ip = request()->ip();
+//        if (in_array($ip, ['127.0.0.1', '::1'])) {
+//            return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
+//        }
+//
+//        try {
+//            $response = Http::timeout(5)->get("https://ipapi.co/{$ip}/json");
+//            if ($response->failed()) {
+//                return null;
+//            }
+//            $data = $response->json();
+//            return [
+//                'lat' => $data['latitude'] ?? 0,
+//                'lon' => $data['longitude'] ?? 0,
+//                'city' => $data['city'] ?? 'Unknown'
+//            ];
+//        } catch (\Exception $e) {
+//            \Log::error("Failed to fetch user location: " . $e->getMessage());
+//            return null;
+//        }
+//    }
+
     private function getUserLocation()
     {
         $ip = request()->ip();
-        if (in_array($ip, ['127.0.0.1', '::1'])) {
-            return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
-        }
 
-        try {
-            $response = Http::timeout(5)->get("https://ipapi.co/{$ip}/json");
-            if ($response->failed()) {
+        if (in_array($ip, ['127.0.0.1', '::1'])) {
+            return [
+                'lat' => 34.0522,
+                'lon' => -118.2437,
+                'city' => 'Los Angeles'
+            ];
+        }
+        return cache()->remember("ip-location-{$ip}", now()->addDay(), function () use ($ip) {
+            try {
+                $response = Http::timeout(5)->get("https://ipwho.is/{$ip}");
+
+                if ($response->failed() || !$response->json('success')) {
+                    \Log::warning("IP lookup failed for IP: {$ip}");
+                    return null;
+                }
+
+                $data = $response->json();
+
+                return [
+                    'lat' => $data['latitude'] ?? 0,
+                    'lon' => $data['longitude'] ?? 0,
+                    'city' => $data['city'] ?? 'Unknown'
+                ];
+            } catch (\Exception $e) {
+                \Log::error("Failed to fetch user location for IP {$ip}: " . $e->getMessage());
                 return null;
             }
-            $data = $response->json();
-            return [
-                'lat' => $data['latitude'] ?? 0,
-                'lon' => $data['longitude'] ?? 0,
-                'city' => $data['city'] ?? 'Unknown'
-            ];
-        } catch (\Exception $e) {
-            \Log::error("Failed to fetch user location: " . $e->getMessage());
-            return null;
-        }
+        });
     }
 
 }
