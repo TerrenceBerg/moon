@@ -16,10 +16,11 @@ class TideDataFetcher
                 : now();
             $station = $this->getNearestStation($lat, $lon);
 
-            if (!$station) {
-                throw new \Exception('No NOAA station found near the specified coordinates.');
-            }
 
+            if (!$station) {
+                \Log::info("No NOAA station found near lat: {$lat}, lon: {$lon}");
+                return null;
+            }
             $tideData = $this->getFullDayTideData($station['id'], $datetime);
 
             if (empty($tideData)) {

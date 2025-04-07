@@ -195,7 +195,7 @@ class CustomCalendar
         $solunarData = $this->getSolunarData($lat, $lon, $date);
         return [
             'date' => $date,
-            'station_name' => $tideData['station_name'],
+            'station_name' => $tideData['station_name'] ?? 'Unknown',
             'gregorian_date' => Carbon::parse($date)->format('l, M j, Y'),
             'julian_day' => Carbon::parse($date)->dayOfYear,
             'is_today' => Carbon::parse($date)->isToday(),
