@@ -273,7 +273,6 @@ class CustomCalendar
     {
         $cacheKey = "solunar_rating_{$lat}_{$lng}_{$date}";
 
-        // Check cache
         if ($cachedData = Cache::get($cacheKey)) {
             return $cachedData;
         }
@@ -282,16 +281,18 @@ class CustomCalendar
             $formattedDate = Carbon::parse($date)->format('Ymd');
             $url = "https://api.solunar.org/solunar/{$lat},{$lng},{$formattedDate},{$offset}";
 
-            $client = new Client([
-                'timeout' => 10, // Set a timeout to avoid hanging requests
-            ]);
+            $client = new Client(['timeout' => 10]);
 
             $response = $client->get($url);
             $data = json_decode($response->getBody(), true);
 
             if (!$data || !isset($data['hourlyRating'])) {
                 \Log::error("Solunar API returned invalid data for {$lat}, {$lng} on {$date}");
-                return null;
+                return [
+                    'hourlyRating' => [],
+                    'calculatedRating' => 0,
+                    'moonPhase' => null,
+                ];
             }
 
             $hourly = $data['hourlyRating'];
@@ -303,13 +304,17 @@ class CustomCalendar
 
             $data['calculatedRating'] = $starRating;
 
-            // Store in cache for 30 days
             Cache::put($cacheKey, $data, now()->addDays(30));
 
             return $data;
         } catch (\Throwable $e) {
             \Log::error("Error fetching Solunar data: " . $e->getMessage());
-            return null;
+
+            return [
+                'hourlyRating' => [],
+                'calculatedRating' => 0,
+                'moonPhase' => null,
+            ];
         }
     }
     private function fetchWeather($date)
@@ -337,6 +342,7 @@ class CustomCalendar
             return null;
         }
     }
+
     public function getTideData($date)
     {
         try {
@@ -377,6 +383,7 @@ class CustomCalendar
             \Log::error("Error fetching tide data: " . $e->getMessage());
         }
     }
+
     private function storeTideData($predictions, $stationId)
     {
         $tideData = [];
