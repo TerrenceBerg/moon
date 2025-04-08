@@ -41,6 +41,7 @@ class CustomCalendar
             ->groupBy('date');
 
         $moons = $this->getMoonPhases();
+        $currentMonth = now()->month;
 
         foreach ($yearRange as $year) {
             if (!isset($solarEvents[$year])) {
@@ -71,13 +72,20 @@ class CustomCalendar
                 for ($i = 0; $i < 28; $i++) {
                     $dayDate = $monthStart->copy()->addDays($i)->toDateString();
                     $dayTideData = $noaaData[$dayDate][0] ?? null;
+                    $day = $monthStart->copy()->addDays($i);
 
                     $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$dayDate}";
                     $solunarData = $solunarBulk[$cacheKey] ?? null;
 
-                    // fallback to live fetch if not in cache
-                    if (!$solunarData) {
-                        $solunarData = $this->getSolunarData($station->latitude, $station->longitude, $dayDate);
+                    if ($day->month === $currentMonth) {
+                        $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$dayDate}";
+                        $solunarData = Cache::get($cacheKey);
+
+                        if (!$solunarData) {
+                            $solunarData = $this->getSolunarData($station->latitude, $station->longitude, $dayDate);
+                        }
+
+                        $solunarRating = $solunarData['calculatedRating'] ?? null;
                     }
                     $solunarRating = $solunarData['calculatedRating'] ?? null;
 //                    $moonIcons = [
