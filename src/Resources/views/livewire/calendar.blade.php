@@ -4,19 +4,28 @@
     <!-- Fixed Header -->
     <div class="fixed-header shadow-sm">
         <div class="header-content container py-2">
-            <h4 class="text-primary mb-1">📍 Location: <strong>{{ $location['city'] }}</strong></h4>
-            <h5 class="text-muted mb-2">🌍 Nearest NOAA Station: <strong>{{ $selectedStation->name }}</strong></h5>
+            <h4 class="text-primary mb-1">
+                📍 Location:
+                <strong>{{ $location['city'] ?? 'N/A' }}</strong>
+            </h4>
+
+            <h5 class="text-muted mb-2">
+                🌍 Nearest NOAA Station:
+                <strong>{{ $selectedStation->name ?? 'N/A' }}</strong>
+            </h5>
+
             <div>
                 <label for="stationSelect" class="form-label fw-bold">Select Station:</label><br>
                 <select wire:model="selectedStation" id="stationSelect" class="form-control">
                     @foreach ($stations as $station)
-                        <option value="{{ $station->id }}">{{ $station->name }}</option>
+                        <option value="{{ $station->id }}">
+                            {{ $station->name }}
+                        </option>
                     @endforeach
                 </select>
             </div>
         </div>
     </div>
-
     <!-- Spacer -->
     <div class="header-spacer mt-5"></div>
 
