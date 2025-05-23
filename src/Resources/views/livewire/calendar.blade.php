@@ -23,7 +23,7 @@
         <div class="header-content container py-2">
             <h4 class="text-primary mb-1">
                 📍 Location:
-                <strong>{{ $location['city'] ?? 'N/A' }}</strong>
+                <strong>{{ $location['city'] ?? 'N/A' }} ({{$location['lat']}},{{$location['lon']}})</strong>
             </h4>
 
             <h5 class="text-muted mb-2">
@@ -101,16 +101,9 @@
             }
         });
         function getCityName(lat, lon) {
-            return fetch('/api/get-city-name', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    // Include CSRF token if Laravel middleware requires it
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify({ lat, lon }),
-            })
+            const url = `/api/city-name/${lat}/${lon}`;
+
+            return fetch(url)
                 .then(response => response.json())
                 .then(data => data.city)
                 .catch(err => {
@@ -118,6 +111,24 @@
                     return 'Unknown city';
                 });
         }
+        // function getCityName(lat, lon) {
+        //     return fetch('/api/get-city-name', {
+        //             method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //             'Accept': 'application/json',
+        //             // Include CSRF token if Laravel middleware requires it
+        //             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        //         },
+        //         body: JSON.stringify({ lat, lon }),
+        //     })
+        //         .then(response => response.json())
+        //         .then(data => data.city)
+        //         .catch(err => {
+        //             console.error('Failed to fetch city name:', err);
+        //             return 'Unknown city';
+        //         });
+        // }
     </script>
     <!-- Spacer -->
     <div class="header-spacer mt-5"></div>
