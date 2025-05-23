@@ -83,14 +83,15 @@
                     function (position) {
                         const lat = position.coords.latitude;
                         const lon = position.coords.longitude;
-
-                        getCityName(lat, lon).then(city => {
+                        const city = 'City From browser';
+                        console.log(city,position);
+                        // getCityName(lat, lon).then(city => {
                             if (typeof Livewire.dispatch === 'function') {
                                 Livewire.dispatch('updateLocationFromBrowser', { lat, lon, city });
                             } else {
                                 Livewire.emit('updateLocationFromBrowser', lat, lon, city);
                             }
-                        });
+                        // });
                     },
                     function (error) {
                         console.error('Geolocation error:', error);
@@ -100,21 +101,22 @@
             }
         });
         function getCityName(lat, lon) {
-            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
-
-            return fetch(url, {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    return data.address.city || data.address.town || data.address.village || "Unknown city";
-                })
-                .catch(err => {
-                    console.error("Reverse geocoding failed:", err);
-                    return null;
-                });
+            // const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+            //
+            // return fetch(url, {
+            //     headers: {
+            //         'Accept': 'application/json'
+            //     }
+            // })
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         return data.address.city || data.address.town || data.address.village || "Unknown city";
+            //     })
+            //     .catch(err => {
+            //         console.error("Reverse geocoding failed:", err);
+            //         return null;
+            //     });
+            return 'City From browser';
         }
     </script>
     <!-- Spacer -->

@@ -437,7 +437,6 @@ class Calendar extends Component
             'lon' => $lon,
             'city' => $city,
         ];
-        $this->location = $this->getUserLocation();
         if (!$this->location) return response()->json(['error' => 'Unable to determine location.'], 400);
 
         $nearestStation = NOAAStation::getNearestStation($this->location['lat'], $this->location['lon']);
