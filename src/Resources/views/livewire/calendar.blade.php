@@ -13,10 +13,9 @@
                 🌍 Nearest NOAA Station:
                 <strong>{{ $selectedStation->name ?? 'N/A' }}</strong>
             </h5>
-
             <div>
                 <label for="stationSelect" class="form-label fw-bold">Select Station:</label><br>
-                <select wire:model="selectedStation" id="stationSelect" class="form-control">
+                <select id="stationSelect" class="form-control">
                     @foreach ($stations as $station)
                         <option value="{{ $station->id }}">
                             {{ $station->name }}
@@ -24,11 +23,38 @@
                     @endforeach
                 </select>
             </div>
+
+{{--            <div>--}}
+{{--                <label for="stationSelect" class="form-label fw-bold">Select Station:</label><br>--}}
+{{--                <select wire:model="selectedStation" id="stationSelect" class="form-control">--}}
+{{--                    @foreach ($stations as $station)--}}
+{{--                        <option value="{{ $station->id }}">--}}
+{{--                            {{ $station->name }}--}}
+{{--                        </option>--}}
+{{--                    @endforeach--}}
+{{--                </select>--}}
+{{--            </div>--}}
         </div>
     </div>
-    <button id="get-location-btn" wire:ignore class="btn btn-primary">Use My Location</button>
+    <button id="get-location-btn" wire:ignore class="btn btn-primary text-center">Use My Location</button>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const stationSelect = document.getElementById('stationSelect');
+
+            if (stationSelect) {
+                stationSelect.addEventListener('change', function () {
+                    const stationId = this.value;
+
+                    // Dispatch or emit Livewire event
+                    if (typeof Livewire.dispatch === 'function') {
+                        Livewire.dispatch('updateStation', { stationId: parseInt(stationId) });
+                    } else {
+                        Livewire.emit('updateStation', parseInt(stationId));
+                    }
+                });
+            }
+        });
         document.addEventListener('click', function (e) {
             if (e.target && e.target.id === 'get-location-btn') {
                 if (!navigator.geolocation) {
