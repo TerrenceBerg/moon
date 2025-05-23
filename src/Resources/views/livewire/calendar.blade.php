@@ -32,7 +32,7 @@
             </h5>
             <div>
                 <label for="stationSelect" class="form-label fw-bold">Select Station:</label><br>
-                <select id="stationSelect" class="form-control">
+                <select id="stationSelect" wire:model="selectedStationId" class="form-control">
                     @foreach ($stations as $station)
                         <option value="{{ $station->id }}">
                             {{ $station->name }}
