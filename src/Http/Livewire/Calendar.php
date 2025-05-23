@@ -29,12 +29,13 @@ class Calendar extends Component
         $this->temperatureUnit = config('temperature_unit', 'F');
 
         $this->location = $this->getUserLocation();
-        if (!$this->location) return response()->json(['error' => 'Unable to determine location.'], 400);
+//        if (!$this->location) return response()->json(['error' => 'Unable to determine location.'], 400);
 
         $nearestStation = NOAAStation::getNearestStation($this->location['lat'], $this->location['lon']);
-        if (!$nearestStation) return response()->json(['error' => 'No station found.'], 404);
+//        if (!$nearestStation) return response()->json(['error' => 'No station found.'], 404);
 
         $this->stations = NOAAStation::orderBy('name')->get();
+//        dd($this->stations);
         $this->selectedStationId = $nearestStation->id ?? $this->stations->first()->id;
         $this->selectedStation = NOAAStation::find($this->selectedStationId);
         $this->loadCalendar();
@@ -175,7 +176,9 @@ class Calendar extends Component
     {
 //        $ip = request()->ip();
 //        if (in_array($ip, ['127.0.0.1', '::1'])) {
-            return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
+//            return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
+//            return ['lat' => 36.7783, 'lon' => 119.4179, 'city' => 'Los Angeles'];
+            return ['lat' => 32.715736, 'lon' => -117.161087, 'city' => 'San Diego'];
 //        }
 
 //        try {
