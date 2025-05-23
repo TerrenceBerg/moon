@@ -1,6 +1,23 @@
 <div>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .full-page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.7); /* semi-transparent white overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* make sure it’s on top */
+        }
 
+        .loader-content {
+            text-align: center;
+        }
+    </style>
     <!-- Fixed Header -->
     <div class="fixed-header shadow-sm">
         <div class="header-content container py-2">
@@ -107,7 +124,7 @@
     <div wire:loading.delay class="full-page-loader">
         <div class="loader-content">
             <div class="spinner-border text-light" role="status"></div>
-            <p class="mt-2 text-white fw-bold">Fetching Data...</p>
+            <p class="mt-2 text-dark fw-bold">Fetching Data...</p>
         </div>
     </div>
 
