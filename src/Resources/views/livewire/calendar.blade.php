@@ -85,7 +85,6 @@
                         const lon = position.coords.longitude;
 
                         getCityName(lat, lon).then(city => {
-                            alert(city);
                             if (typeof Livewire.dispatch === 'function') {
                                 Livewire.dispatch('updateLocationFromBrowser', { lat, lon, city });
                             } else {
