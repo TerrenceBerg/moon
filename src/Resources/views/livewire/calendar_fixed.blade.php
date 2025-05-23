@@ -17,16 +17,16 @@
             <div>
                 <label for="stationSelect" class="form-label fw-bold">Select Station:</label><br>
                 <select wire:model="selectedStation" id="stationSelect" class="form-control">
-                    @foreach ($stations as $station)
-                        <option value="{{ $station->id }}">
-                            {{ $station->name }}
+                    @foreach ($stations ?? [] as $station)
+                        <option value="{{ $station->id ?? '' }}">
+                            {{ $station->name ?? 'Unknown Station' }}
                         </option>
                     @endforeach
                 </select>
             </div>
         </div>
     </div>
-    <button wire:ignore id="get-location-btn" class="btn btn-primary">Use My Location</button>
+
     <!-- Spacer -->
     <div class="header-spacer mt-5"></div>
 
@@ -43,29 +43,29 @@
         <div class="calendar-container container py-4">
             <h1 class="text-center text-primary mb-4">📅 13-Month Calendar</h1>
 
-            @foreach ($calendarData as $year => $data)
+            @foreach ($calendarData ?? [] as $year => $data)
                 <div class="accordion-item mb-4 border p-3 rounded shadow-sm">
                     <h2 class="text-center text-dark">Year {{ $year }}</h2>
                     <div class="row">
-                        @foreach ($data['months'] as $index => $month)
-                            <div class="calendar-month col-lg-12 mt-4" id="month-{{ $month['name'] }}">
-                                <h5 class="text-center bg-primary text-white p-2 rounded">{{ $month['name'] }}</h5>
+                        @foreach ($data['months'] ?? [] as $index => $month)
+                            <div class="calendar-month col-lg-12 mt-4" id="month-{{ $month['name'] ?? 'unknown' }}">
+                                <h5 class="text-center bg-primary text-white p-2 rounded">{{ $month['name'] ?? 'Unnamed Month' }}</h5>
                                 <div class="calendar-grid d-grid gap-1" style="grid-template-columns: repeat(7, 1fr);">
                                     @foreach(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)
                                         <div class="day-header fw-bold text-center">{{ $day }}</div>
                                     @endforeach
 
-                                    @foreach($month['days'] as $i => $day)
+                                    @foreach($month['days'] ?? [] as $i => $day)
                                         <div class="calendar-day p-2 border rounded text-center"
-                                             id="day-{{ $day['date'] }}"
-                                             style="{{ $day['is_today'] ? 'background-color: lightgreen; color: black; border: 2px solid green;' : '' }}">
+                                             id="day-{{ $day['date'] ?? 'no-date' }}"
+                                             style="{{ ($day['is_today'] ?? false) ? 'background-color: lightgreen; color: black; border: 2px solid green;' : '' }}">
 
                                             <!-- Desktop View -->
                                             <div class="d-none d-md-block">
-                                                <span class="date-info d-block">{{ $month['name'] }}<br>Day {{ $i + 1 }}</span>
-                                                <span class="date-info d-block">{{ $day['moon_phase'] }}</span>
-                                                <span class="gregorian-date d-block small text-muted">{{ $day['gregorian_date'] }}</span>
-                                                <span class="date-info d-block">Julian Day {{ $day['julian_day'] }}</span>
+                                                <span class="date-info d-block">{{ $month['name'] ?? 'Month' }}<br>Day {{ $i + 1 }}</span>
+                                                <span class="date-info d-block">{{ $day['moon_phase'] ?? '' }}</span>
+                                                <span class="gregorian-date d-block small text-muted">{{ $day['gregorian_date'] ?? '' }}</span>
+                                                <span class="date-info d-block">Julian Day {{ $day['julian_day'] ?? '' }}</span>
 
                                                 @if(isset($day['solunar_rating']))
                                                     <div class="mt-2">
@@ -82,14 +82,14 @@
                                                     </div>
                                                 @endif
 
-                                                @if ($day['tide_data'])
+                                                @if (!empty($day['tide_data']))
                                                     <span class="d-block fw-bold mt-2">🌊 Tides</span>
-                                                    <span class="d-block">High: {{ $day['tide_data']['high_tide_time'] }} ({{ $day['tide_data']['high_tide_level'] }}m)</span>
-                                                    <span class="d-block">Low: {{ $day['tide_data']['low_tide_time'] }} ({{ $day['tide_data']['low_tide_level'] }}m)</span>
+                                                    <span class="d-block">High: {{ $day['tide_data']['high_tide_time'] ?? '--' }} ({{ $day['tide_data']['high_tide_level'] ?? '--' }}m)</span>
+                                                    <span class="d-block">Low: {{ $day['tide_data']['low_tide_time'] ?? '--' }} ({{ $day['tide_data']['low_tide_level'] ?? '--' }}m)</span>
                                                 @endif
 
                                                 <button class="btn btn-sm btn-light mt-2 border"
-                                                        wire:click="loadMoreData('{{ $day['date'] }}')">
+                                                        wire:click="loadMoreData('{{ $day['date'] ?? '' }}')">
                                                     <i class="bi bi-backpack4 text-primary"></i> More Info
                                                 </button>
                                             </div>
@@ -98,7 +98,7 @@
                                             <div class="d-block d-md-none">
                                                 <a style="cursor: pointer; font-size: 10px; font-weight: bold"
                                                    href="#" class="text-dark"
-                                                   wire:click.prevent="loadMoreData('{{ $day['date'] }}')">
+                                                   wire:click.prevent="loadMoreData('{{ $day['date'] ?? '' }}')">
                                                     {{ $i + 1 }}
                                                 </a>
                                             </div>
@@ -118,22 +118,24 @@
         <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0,0,0,0.5);">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-md-down" role="document">
                 <div class="modal-content border-0 shadow-lg rounded-4">
-                    <div class="modal-header text-white" style="background: linear-gradient(to right, #1e3c72, #2a5298);">
-                        <h5 class="modal-title">🌙 Astronomical Data for {{ $selectedDate }}</h5>
+                    <div class="modal-header text-white"
+                         style="background: linear-gradient(to right, #1e3c72, #2a5298);">
+                        <h5 class="modal-title">🌙 Astronomical Data for {{ $selectedDate ?? 'N/A' }}</h5>
                         <button type="button" class="btn-close" wire:click.prevent="closeModal"></button>
                     </div>
                     <div class="modal-body p-4">
                         @if($solunarData)
                             <div class="card rounded border-dark mb-3 p-3">
-                                <h5 class="fw-bold mb-3 border-bottom pb-2">🌤️ Solunar Summary — {{ \Carbon\Carbon::parse($selectedDate)->format('M j, Y') }}</h5>
+                                <h5 class="fw-bold mb-3 border-bottom pb-2">🌤️ Solunar Summary
+                                    — {{ \Carbon\Carbon::parse($selectedDate ?? now())->format('M j, Y') }}</h5>
                                 <div class="row small text-muted">
                                     <!-- Sun Info -->
                                     <div class="col-md-4 mb-2">
                                         <h6 class="text-dark mb-1">🌞 Sun</h6>
                                         <ul class="list-unstyled mb-0">
-                                            <li><strong>Rise:</strong> {{ $solunarData['sunRise'] }}</li>
-                                            <li><strong>Transit:</strong> {{ $solunarData['sunTransit'] }}</li>
-                                            <li><strong>Set:</strong> {{ $solunarData['sunSet'] }}</li>
+                                            <li><strong>Rise:</strong> {{ $solunarData['sunRise'] ?? '--' }}</li>
+                                            <li><strong>Transit:</strong> {{ $solunarData['sunTransit'] ?? '--' }}</li>
+                                            <li><strong>Set:</strong> {{ $solunarData['sunSet'] ?? '--' }}</li>
                                         </ul>
                                     </div>
 
@@ -141,11 +143,13 @@
                                     <div class="col-md-4 mb-2">
                                         <h6 class="text-dark mb-1">🌙 Moon</h6>
                                         <ul class="list-unstyled mb-0">
-                                            <li><strong>Rise:</strong> {{ $solunarData['moonRise'] }}</li>
-                                            <li><strong>Transit:</strong> {{ $solunarData['moonTransit'] }}</li>
-                                            <li><strong>Set:</strong> {{ $solunarData['moonSet'] }}</li>
-                                            <li><strong>Phase:</strong> {{ $solunarData['moonPhase'] }}</li>
-                                            <li><strong>Illumination:</strong> {{ round($solunarData['moonIllumination'] * 100) }}%</li>
+                                            <li><strong>Rise:</strong> {{ $solunarData['moonRise'] ?? '--' }}</li>
+                                            <li><strong>Transit:</strong> {{ $solunarData['moonTransit'] ?? '--' }}</li>
+                                            <li><strong>Set:</strong> {{ $solunarData['moonSet'] ?? '--' }}</li>
+                                            <li><strong>Phase:</strong> {{ $solunarData['moonPhase'] ?? '--' }}</li>
+                                            <li>
+                                                <strong>Illumination:</strong> {{ isset($solunarData['moonIllumination']) ? round($solunarData['moonIllumination'] * 100) . '%' : '--' }}
+                                            </li>
                                         </ul>
                                     </div>
 
@@ -153,15 +157,20 @@
                                     <div class="col-md-4 mb-2">
                                         <h6 class="text-dark mb-1">🎯 Ratings</h6>
                                         <ul class="list-unstyled mb-2">
-                                            <li><strong>Day:</strong> {{ $solunarData['dayRating'] }}</li>
-                                            <li><strong>Calc:</strong> {{ $solunarData['calculatedRating'] }}</li>
+                                            <li><strong>Day:</strong> {{ $solunarData['dayRating'] ?? '--' }}</li>
+                                            <li><strong>Calc:</strong> {{ $solunarData['calculatedRating'] ?? '--' }}
+                                            </li>
                                         </ul>
                                         <h6 class="text-dark mb-1">🎣 Activity</h6>
                                         <ul class="list-unstyled mb-0">
-                                            <li><strong>Minor 1:</strong> {{ $solunarData['minor1Start'] }} – {{ $solunarData['minor1Stop'] }}</li>
-                                            <li><strong>Minor 2:</strong> {{ $solunarData['minor2Start'] }} – {{ $solunarData['minor2Stop'] }}</li>
-                                            <li><strong>Major 1:</strong> {{ $solunarData['major1Start'] }} – {{ $solunarData['major1Stop'] }}</li>
-                                            <li><strong>Major 2:</strong> {{ $solunarData['major2Start'] }} – {{ $solunarData['major2Stop'] }}</li>
+                                            <li><strong>Minor 1:</strong> {{ $solunarData['minor1Start'] ?? '--' }}
+                                                – {{ $solunarData['minor1Stop'] ?? '--' }}</li>
+                                            <li><strong>Minor 2:</strong> {{ $solunarData['minor2Start'] ?? '--' }}
+                                                – {{ $solunarData['minor2Stop'] ?? '--' }}</li>
+                                            <li><strong>Major 1:</strong> {{ $solunarData['major1Start'] ?? '--' }}
+                                                – {{ $solunarData['major1Stop'] ?? '--' }}</li>
+                                            <li><strong>Major 2:</strong> {{ $solunarData['major2Start'] ?? '--' }}
+                                                – {{ $solunarData['major2Stop'] ?? '--' }}</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -174,25 +183,4 @@
             </div>
         </div>
     @endif
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const btn = document.getElementById('get-location-btn');
-
-            btn.addEventListener('click', () => {
-                if (!navigator.geolocation) {
-                    alert("Geolocation is not supported by your browser.");
-                    return;
-                }
-
-                navigator.geolocation.getCurrentPosition(position => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-
-                    Livewire.dispatch('updateLocationFromBrowser', lat, lon);
-                }, error => {
-                    alert("Location access denied or unavailable.");
-                });
-            });
-        });
-    </script>
 </div>

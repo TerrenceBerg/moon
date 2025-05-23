@@ -62,24 +62,13 @@ class Calendar extends Component
             ->first();
 
         if ($this->modalData) {
-//            if (!isset($this->modalData->sunrise, $this->modalData->sunset)) {
-//                $this->storeSunriseSunsetData($date);
-//                $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
-//                    ->whereDate('date', $date)
-//                    ->first();
-//            }
-//
-//            $this->modalData->moon_phase = $this->getMoonPhase($date);
-
             if (!$this->modalData->min_temp || !$this->modalData->precipitation || !$this->modalData->weather_code) {
                 $weatherData = $this->fetchWeather($date);
                 if ($weatherData) {
                     $this->modalData->update($weatherData);
                 }
             }
-//            if (!$this->modalData->low_tide_time || !$this->modalData->low_tide_level || !$this->modalData->high_tide_level || !$this->modalData->high_tide_time) {
-//                $this->getTideData($date);
-//            }
+
         } else {
             $this->getTideData($date);
             $this->modalData = NOAATideForecast::where('station_id', $this->selectedStationId)
@@ -90,19 +79,6 @@ class Calendar extends Component
                 $this->modalData->update($weatherData);
             }
         }
-//        $this->currentsData = null;
-//        $this->fetchAllNoaaProducts($this->selectedStation->station_id, $date);
-//        if ($this->selectedStation && $this->selectedStation->currentStation) {
-////            $this->getStationData($this->selectedStation->station_id, $date);
-//
-//            $isToday = Carbon::parse($date)->isToday();
-//            if ($isToday) {
-//                $currents = $this->fetchCurrentsData($this->selectedStation->currentStation->station_id, 'today');
-//                if (!empty($currents['current_predictions']['cp'])) {
-//                    $this->currentsData = collect($currents['current_predictions']['cp'])->take(6);
-//                }
-//            }
-//        }
 
         if ($this->selectedStation && $this->selectedStation->latitude && $this->selectedStation->longitude) {
             $lat = $this->selectedStation->latitude;
@@ -197,26 +173,26 @@ class Calendar extends Component
 
     private function getUserLocation()
     {
-        $ip = request()->ip();
-        if (in_array($ip, ['127.0.0.1', '::1'])) {
+//        $ip = request()->ip();
+//        if (in_array($ip, ['127.0.0.1', '::1'])) {
             return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
-        }
+//        }
 
-        try {
-            $response = Http::timeout(5)->get("https://ipapi.co/{$ip}/json");
-            if ($response->failed()) {
-                return null;
-            }
-            $data = $response->json();
-            return [
-                'lat' => $data['latitude'] ?? 0,
-                'lon' => $data['longitude'] ?? 0,
-                'city' => $data['city'] ?? 'Unknown'
-            ];
-        } catch (\Exception $e) {
-            \Log::error("Failed to fetch user location: " . $e->getMessage());
-            return null;
-        }
+//        try {
+//            $response = Http::timeout(5)->get("https://ipapi.co/{$ip}/json");
+//            if ($response->failed()) {
+//                return null;
+//            }
+//            $data = $response->json();
+//            return [
+//                'lat' => $data['latitude'] ?? 0,
+//                'lon' => $data['longitude'] ?? 0,
+//                'city' => $data['city'] ?? 'Unknown'
+//            ];
+//        } catch (\Exception $e) {
+//            \Log::error("Failed to fetch user location: " . $e->getMessage());
+//            return null;
+//        }
     }
 
     public function getTemperature($temp)
@@ -336,63 +312,6 @@ class Calendar extends Component
             return null;
         }
     }
-//    public function fetchAllNoaaProducts($stationId, $date)
-//    {
-//        $results = [];
-//
-//        $startDate = Carbon::parse($date)->format('Ymd');
-//        $endDate = Carbon::parse($date)->format('Ymd');
-//
-//        $productsWithDatum = ['predictions', 'water_level'];
-//        $productsStandard = [
-//            'wind',
-//            'air_temperature',
-//            'water_temperature',
-//            'air_pressure',
-//            'humidity',
-//            'salinity',
-//            'visibility',
-//            'dew_point'
-//        ];
-//        foreach ($productsWithDatum as $product) {
-//            $queryParams = [
-//                'station' => $stationId,
-//                'product' => $product,
-//                'begin_date' => $startDate,
-//                'end_date' => $endDate,
-//                'datum' => 'MLLW',
-//                'units' => 'metric',
-//                'time_zone' => 'gmt',
-//                'format' => 'json',
-//            ];
-//
-//            $response = Http::get('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter', $queryParams);
-//
-//            $results[$product] = $response->successful()
-//                ? ($response->json() ?? 'No data returned')
-//                : 'Request failed (' . $response->status() . ')';
-//        }
-//
-//        foreach ($productsStandard as $product) {
-//            $queryParams = [
-//                'station' => $stationId,
-//                'product' => $product,
-//                'begin_date' => $startDate,
-//                'end_date' => $endDate,
-//                'units' => 'metric',
-//                'time_zone' => 'gmt',
-//                'format' => 'json',
-//            ];
-//
-//            $response = Http::get('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter', $queryParams);
-//
-//            $results[$product] = $response->successful()
-//                ? ($response->json() ?? 'No data returned')
-//                : 'Request failed (' . $response->status() . ')';
-//        }
-////        dd($results);
-//        $this->stationMoreData =$results;
-//    }
     public function fetchAllNoaaProducts($stationId, $date)
     {
         $results = [];
@@ -509,6 +428,15 @@ class Calendar extends Component
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    public function updateLocationFromBrowser($lat, $lon)
+    {
+        $this->location = [
+            'lat' => $lat,
+            'lon' => $lon,
+            'city' => 'From Browser',
+        ];
     }
 
 
