@@ -17,6 +17,7 @@ class NOAAStation extends Model
             sin( radians( latitude ) ) ) ) AS distance",
             [$userLat, $userLon, $userLat]
         )
+            ->having('distance', '<=', 50)
             ->orderBy('distance')
             ->first();
     }
