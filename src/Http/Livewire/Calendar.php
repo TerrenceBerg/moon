@@ -15,7 +15,7 @@ use Tuna976\CustomCalendar\Models\NOAATideForecast;
 
 class Calendar extends Component
 {
-    protected $listeners = ['updateStation' => 'setStation'];
+    protected $listeners = ['updateLocationFromBrowser' => 'setLocationFromBrowser','updateStation' => 'setStation'];
 
     public $stations, $selectedStationId, $selectedStation, $location, $calendarData;
     public $loading = false, $selectedDate, $modalData, $showModal = false;
@@ -430,12 +430,12 @@ class Calendar extends Component
         }
     }
 
-    public function updateLocationFromBrowser($lat, $lon)
+    public function setLocationFromBrowser($lat, $lon,$city)
     {
         $this->location = [
             'lat' => $lat,
             'lon' => $lon,
-            'city' => 'From Browser',
+            'city' => $city,
         ];
     }
 
