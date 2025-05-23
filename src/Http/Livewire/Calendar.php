@@ -437,6 +437,16 @@ class Calendar extends Component
             'lon' => $lon,
             'city' => $city,
         ];
+        $this->location = $this->getUserLocation();
+        if (!$this->location) return response()->json(['error' => 'Unable to determine location.'], 400);
+
+        $nearestStation = NOAAStation::getNearestStation($this->location['lat'], $this->location['lon']);
+        if (!$nearestStation) return response()->json(['error' => 'No station found.'], 404);
+
+        $this->stations = NOAAStation::orderBy('name')->get();
+        $this->selectedStationId = $nearestStation->id ?? $this->stations->first()->id;
+        $this->selectedStation = NOAAStation::find($this->selectedStationId);
+        $this->loadCalendar();
     }
 
 
