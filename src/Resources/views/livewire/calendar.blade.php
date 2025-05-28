@@ -21,13 +21,13 @@
     <!-- Fixed Header -->
     <div class="fixed-header shadow-sm">
         <div class="header-content container py-2">
-            <h4 class="text-primary mb-1">
-                📍 Location:
-                <strong>{{ $location['city'] ?? 'N/A' }} ({{$location['lat']}},{{$location['lon']}})</strong>
-            </h4>
+{{--            <h4 class="text-primary mb-1">--}}
+{{--                📍 Location:--}}
+{{--                <strong>{{ $location['city'] ?? 'N/A' }} ({{$location['lat']}},{{$location['lon']}})</strong>--}}
+{{--            </h4>--}}
 
             <h5 class="text-muted mb-2">
-                🌍 Nearest NOAA Station:
+                🌍 Selected NOAA Station:
                 <strong>{{ $selectedStation->name ?? 'N/A' }}</strong>
             </h5>
             <div>
