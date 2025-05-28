@@ -53,16 +53,18 @@ class CustomCalendar
             $cacheKeys = [];
             $dateMap = [];
 
+            // Collect cache keys only for current month (optional)
             foreach ($moons as $moon) {
                 $monthStart = $vernalEquinox->copy()->addDays($moon['offset']);
-                for ($i = 0; $i < 28; $i++) {
-                    $date = $monthStart->copy()->addDays($i)->toDateString();
-                    $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$date}";
-                    $cacheKeys[] = $cacheKey;
-                    $dateMap[$cacheKey] = $date;
+                if ($monthStart->month === $currentMonth) {
+                    for ($i = 0; $i < 28; $i++) {
+                        $date = $monthStart->copy()->addDays($i)->toDateString();
+                        $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$date}";
+                        $cacheKeys[] = $cacheKey;
+                        $dateMap[$cacheKey] = $date;
+                    }
                 }
             }
-
             $solunarBulk = Cache::many($cacheKeys);
 
             foreach ($moons as $moon) {
@@ -71,48 +73,39 @@ class CustomCalendar
 
                 for ($i = 0; $i < 28; $i++) {
                     $dayDate = $monthStart->copy()->addDays($i)->toDateString();
-                    $dayTideData = $noaaData[$dayDate][0] ?? null;
                     $day = $monthStart->copy()->addDays($i);
 
-                    $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$dayDate}";
-                    $solunarData = $solunarBulk[$cacheKey] ?? null;
+                    // Basic info always loaded
+                    $dayInfo = [
+                        'date' => $dayDate,
+                        'day_of_week' => $day->format('l'),
+                        'julian_day' => $day->dayOfYear,
+                        'gregorian_date' => $day->format('M j, Y'),
+                        'is_today' => $day->isToday(),
+                    ];
 
-                    if ($day->month === $currentMonth) {
+                    if ($monthStart->month === $currentMonth) {
+                        // Load detailed data only for current month
+                        $dayTideData = $noaaData[$dayDate][0] ?? null;
+
                         $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$dayDate}";
-                        $solunarData = Cache::get($cacheKey);
+                        $solunarData = $solunarBulk[$cacheKey] ?? null;
 
                         if (!$solunarData) {
                             $solunarData = $this->getSolunarData($station->latitude, $station->longitude, $dayDate);
                         }
 
-                        $solunarRating = $solunarData['calculatedRating'] ?? null;
+                        $dayInfo['moon_phase'] = $this->getMoonPhase($dayDate);
+                        $dayInfo['tide_data'] = $dayTideData ? $this->formatTideData($dayTideData) : null;
+                        $dayInfo['solunar_rating'] = $solunarData['calculatedRating'] ?? null;
+                    } else {
+                        // For other months, no detailed data, but still add moon_phase as empty string or null
+                        $dayInfo['moon_phase'] = null;
+                        $dayInfo['tide_data'] = null;
+                        $dayInfo['solunar_rating'] = null;
                     }
-                    $solunarRating = $solunarData['calculatedRating'] ?? null;
-//                    $moonIcons = [
-//                        'New Moon' => '🌑',
-//                        'Waxing Crescent' => '🌒',
-//                        'First Quarter' => '🌓',
-//                        'Waxing Gibbous' => '🌔',
-//                        'Full Moon' => '🌕',
-//                        'Waning Gibbous' => '🌖',
-//                        'Last Quarter' => '🌗',
-//                        'Waning Crescent' => '🌘',
-//                    ];
-//
-//                    $moonPhaseKey = $solunarData['moonPhase'] ?? null;
-//
-//                    $moonIcon = $moonIcons[$moonPhaseKey] ?? null;
-                    $monthDays[] = [
-                        'date' => $dayDate,
-                        'day_of_week' => Carbon::parse($dayDate)->format('l'),
-                        'julian_day' => Carbon::parse($dayDate)->dayOfYear,
-                        'gregorian_date' => Carbon::parse($dayDate)->format('M j, Y'),
-//                        'moon_phase' => $moonIcon." ".$moonPhaseKey,
-                        'moon_phase' => $this->getMoonPhase($dayDate),
-                        'is_today' => Carbon::parse($dayDate)->isToday(),
-                        'tide_data' => $dayTideData ? $this->formatTideData($dayTideData) : null,
-                        'solunar_rating' => $solunarRating,
-                    ];
+
+                    $monthDays[] = $dayInfo;
                 }
 
                 $months[] = [
@@ -125,7 +118,6 @@ class CustomCalendar
             }
 
             $calendarData[$year] = [
-//                'solar_events' => $this->formatSolarEvents($solarEvents[$year]),
                 'is_leap_year' => $this->isLeapYear($year),
                 'months' => $months,
             ];
@@ -133,7 +125,6 @@ class CustomCalendar
 
         return $calendarData;
     }
-
     public function generateDayData($date = null, $stationId = null)
     {
         $date = Carbon::parse($date ?? now())->toDateString();
