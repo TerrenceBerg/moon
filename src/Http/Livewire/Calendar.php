@@ -177,8 +177,8 @@ class Calendar extends Component
 //        $ip = request()->ip();
 //        if (in_array($ip, ['127.0.0.1', '::1'])) {
 //            return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
-//            return ['lat' => 36.7783, 'lon' => 119.4179, 'city' => 'Los Angeles'];
-            return ['lat' => 32.715736, 'lon' => -117.161087, 'city' => 'San Diego'];
+            return ['lat' => 36.7783, 'lon' => 119.4179, 'city' => 'Los Angeles'];
+//            return ['lat' => 32.715736, 'lon' => -117.161087, 'city' => 'San Diego'];
 //        }
 
 //        try {

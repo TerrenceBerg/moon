@@ -41,19 +41,9 @@
                 </select>
             </div>
 
-{{--            <div>--}}
-{{--                <label for="stationSelect" class="form-label fw-bold">Select Station:</label><br>--}}
-{{--                <select wire:model="selectedStation" id="stationSelect" class="form-control">--}}
-{{--                    @foreach ($stations as $station)--}}
-{{--                        <option value="{{ $station->id }}">--}}
-{{--                            {{ $station->name }}--}}
-{{--                        </option>--}}
-{{--                    @endforeach--}}
-{{--                </select>--}}
-{{--            </div>--}}
+
         </div>
     </div>
-    <button id="get-location-btn" wire:ignore class="btn btn-primary text-center">Use My Location</button>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -72,62 +62,7 @@
                 });
             }
         });
-        document.addEventListener('click', function (e) {
-            if (e.target && e.target.id === 'get-location-btn') {
-                if (!navigator.geolocation) {
-                    alert("Geolocation is not supported by your browser.");
-                    return;
-                }
 
-                navigator.geolocation.getCurrentPosition(
-                    function (position) {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-
-                        getCityName(lat, lon).then(city => {
-                            if (typeof Livewire.dispatch === 'function') {
-                                Livewire.dispatch('updateLocationFromBrowser', { lat, lon, city });
-                            } else {
-                                Livewire.emit('updateLocationFromBrowser', lat, lon, city);
-                            }
-                        });
-                    },
-                    function (error) {
-                        console.error('Geolocation error:', error);
-                        alert("Location access denied or unavailable.");
-                    }
-                );
-            }
-        });
-        function getCityName(lat, lon) {
-            const url = `/api/city-name/${lat}/${lon}`;
-
-            return fetch(url)
-                .then(response => response.json())
-                .then(data => data.city)
-                .catch(err => {
-                    console.error('Failed to fetch city name:', err);
-                    return 'Unknown city';
-                });
-        }
-        // function getCityName(lat, lon) {
-        //     return fetch('/api/get-city-name', {
-        //             method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //             'Accept': 'application/json',
-        //             // Include CSRF token if Laravel middleware requires it
-        //             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        //         },
-        //         body: JSON.stringify({ lat, lon }),
-        //     })
-        //         .then(response => response.json())
-        //         .then(data => data.city)
-        //         .catch(err => {
-        //             console.error('Failed to fetch city name:', err);
-        //             return 'Unknown city';
-        //         });
-        // }
     </script>
     <!-- Spacer -->
     <div class="header-spacer mt-5"></div>
