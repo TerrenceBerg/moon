@@ -68,57 +68,57 @@
                 @endif
             </li>
 
-            {{-- Moon Phase --}}
-            <li class="mb-1">
-                🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_data']['phase'] ?? 'N/A' }}
-            </li>
-
-            {{-- Moon Age --}}
-            <li class="mb-1">
-                🕓 <strong>Moon Age:</strong> {{ $moonAge ?? 'N/A' }} days
-            </li>
-
-            {{-- Distance --}}
-            <li class="mb-1">
-                📏 <strong>Distance:</strong>
-                {{ isset($dayData['moon_data']['DI']) ? number_format($dayData['moon_data']['DI'], 2) . ' Earth radii' : 'N/A' }}
-            </li>
-
-            {{-- Latitude --}}
-            <li class="mb-1">
-                🧭 <strong>Latitude:</strong>
-                {{ isset($dayData['moon_data']['LA']) ? number_format($dayData['moon_data']['LA'], 2) . '°' : 'N/A' }}
-            </li>
-
-            {{-- Longitude --}}
-            <li class="mb-1">
-                📐 <strong>Longitude:</strong>
-                {{ isset($dayData['moon_data']['LO']) ? number_format($dayData['moon_data']['LO'], 2) . '°' : 'N/A' }}
-            </li>
-
-            {{-- Solunar Rating --}}
-            @if (!empty($dayData['solunar_rating']))
-                <li class="mb-1">
-                    🎯 <strong>Solunar Rating:</strong>
-                    {{ number_format($dayData['solunar_rating'], 1) }} / 4.0
+                {{-- Moon Phase --}}
+                <li class="mb-1 small text-nowrap">
+                    🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_data']['phase'] ?? 'N/A' }}
                 </li>
-            @endif
 
-            {{-- Tide Data --}}
-            @if (!empty($dayData['all_data']))
-                <li class="mb-1">
-                    🌊 <strong>High Tide:</strong>
-                    {{ $dayData['all_data']['high_tide_time'] ?? 'N/A' }}
-                    ({{ $dayData['all_data']['high_tide_level'] ?? 'N/A' }}m)
+                {{-- Moon Age --}}
+                <li class="mb-1 small text-nowrap">
+                    🕓 <strong>Moon Age:</strong> {{ $moonAge ?? 'N/A' }} days
                 </li>
-                <li class="mb-1">
-                    🏖️ <strong>Low Tide:</strong>
-                    {{ $dayData['all_data']['low_tide_time'] ?? 'N/A' }}
-                    ({{ $dayData['all_data']['low_tide_level'] ?? 'N/A' }}m)
+
+                {{-- Distance --}}
+                <li class="mb-1 small text-nowrap">
+                    📏 <strong>Distance:</strong>
+                    {{ isset($dayData['moon_data']['DI']) ? number_format($dayData['moon_data']['DI'], 2) . ' Earth radii' : 'N/A' }}
                 </li>
-            @else
-                <li class="text-muted"><em>No tide data available.</em></li>
-            @endif
+
+                {{-- Latitude --}}
+                <li class="mb-1 small text-nowrap">
+                    🧭 <strong>Latitude:</strong>
+                    {{ isset($dayData['moon_data']['LA']) ? number_format($dayData['moon_data']['LA'], 2) . '°' : 'N/A' }}
+                </li>
+
+                {{-- Longitude --}}
+                <li class="mb-1 small text-nowrap">
+                    📐 <strong>Longitude:</strong>
+                    {{ isset($dayData['moon_data']['LO']) ? number_format($dayData['moon_data']['LO'], 2) . '°' : 'N/A' }}
+                </li>
+
+                {{-- Solunar Rating --}}
+                @if (!empty($dayData['solunar_rating']))
+                    <li class="mb-1 small text-nowrap">
+                        🎯 <strong>Solunar Rating:</strong>
+                        {{ number_format($dayData['solunar_rating'], 1) }} / 4.0
+                    </li>
+                @endif
+
+                {{-- Tide Data --}}
+                @if (!empty($dayData['all_data']))
+                    <li class="mb-1 small text-nowrap">
+                        🌊 <strong>High Tide:</strong>
+                        {{ $dayData['all_data']['high_tide_time'] ?? 'N/A' }}
+                        ({{ $dayData['all_data']['high_tide_level'] ?? 'N/A' }}m)
+                    </li>
+                    <li class="mb-1 small text-nowrap">
+                        🏖️ <strong>Low Tide:</strong>
+                        {{ $dayData['all_data']['low_tide_time'] ?? 'N/A' }}
+                        ({{ $dayData['all_data']['low_tide_level'] ?? 'N/A' }}m)
+                    </li>
+                @else
+                    <li class="text-muted small text-nowrap"><em>No tide data available.</em></li>
+                @endif
 
         </ul>
 
