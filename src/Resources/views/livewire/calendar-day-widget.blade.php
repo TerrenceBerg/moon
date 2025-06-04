@@ -63,13 +63,13 @@
             @if ($dayData['all_data'])
                 <li class="mb-1">
                     🌊 <strong>High Tide:</strong>
-                    {{ $dayData['all_data']['high_tide_time'] }}
-                    ({{ $dayData['all_data']['high_tide_level'] }}m)
+                    {{ $dayData['all_data']['high_tide_time'] ?? 'N/A' }}
+                    ({{ $dayData['all_data']['high_tide_level'] ?? 'N/A' }}m)
                 </li>
                 <li class="mb-1">
                     🏖️ <strong>Low Tide:</strong>
-                    {{ $dayData['all_data']['low_tide_time'] }}
-                    ({{ $dayData['all_data']['low_tide_level'] }}m)
+                    {{ $dayData['all_data']['low_tide_time'] ?? 'N/A' }}
+                    ({{ $dayData['all_data']['low_tide_level'] ?? 'N/A' }}m)
                 </li>
             @else
                 <li class="text-muted"><em>No tide data available.</em></li>
