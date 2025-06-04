@@ -52,10 +52,12 @@
 
         {{-- Tide & Solunar Info --}}
         <ul class="list-unstyled mb-3 ps-1 text-center">
+            <li class="mb-1">🌕<img src="https://storage.976-TUNA.com/images_moon/moon' .  {{ $dayData['moon_data']['age'] ?? 'N/A' }} . '.webp" style="width:50px; height:50px; border:none;" title="' .  {{ $dayData['moon_data']['age'] ?? 'N/A' }} . '"></li>
+
             <li class="mb-1">🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_phase'] }}</li>
 
             <li class="mb-1">
-                🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_phase'] ?? 'N/A' }}
+                🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_data']['phase'] ?? 'N/A' }}
             </li>
             <li class="mb-1">
                 🕓 <strong>Moon Age:</strong> {{ $dayData['moon_data']['age'] ?? 'N/A' }} days
