@@ -106,19 +106,7 @@
                                                 {{-- Inline moon/tide info --}}
                                                 @if (!empty($day['moon_data']))
 
-                                                    @php
-                                                        $moonAge = $dayData['moon_data']['age'] ?? null;
-                                                    @endphp
-                                                    @if ($moonAge !== null)
-                                                        <img src="https://storage.976-TUNA.com/images_moon/moon{{ $moonAge }}.webp"
-                                                             alt="Moon Age {{ $moonAge }}"
-                                                             style="width:35px; height:35px; border:0;"
-                                                             title="Moon Age: {{ $moonAge }} days">
-                                                    @else
-                                                        <span class="text-muted">🌘 Moon image unavailable</span>
-                                                    @endif
-
-                                                    <div class="small d-flex flex-wrap gap-2 mt-1 justify-content-center text-nowrap">
+                                                    <div class=" d-flex flex-wrap gap-2 mt-1 justify-content-center text-nowrap">
 
                                                         {{-- Moon Age --}}
                                                         @if (!empty($day['moon_data']['age']))
