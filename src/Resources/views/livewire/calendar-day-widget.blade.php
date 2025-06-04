@@ -51,35 +51,61 @@
         </div>
 
         {{-- Tide & Solunar Info --}}
-        <ul class="list-unstyled mb-3 ps-1 text-center">
-            <li class="mb-1">
-                <img src="https://storage.976-TUNA.com/images_moon/moon{{ $dayData['moon_data']['age'] ?? 'N/A' }}.webp" style="width:50px; height:50px; border:none;" title="' .  {{ $dayData['moon_data']['age'] ?? 'N/A' }} . '"></li>
+        <ul class="list-unstyled text-center mb-4 p-3 bg-light rounded shadow-sm">
 
+            {{-- Moon Image --}}
+            <li class="mb-2">
+                @php
+                    $moonAge = $dayData['moon_data']['age'] ?? null;
+                @endphp
+                @if ($moonAge !== null)
+                    <img src="https://storage.976-TUNA.com/images_moon/moon{{ $moonAge }}.webp"
+                         alt="Moon Age {{ $moonAge }}"
+                         style="width:60px; height:60px; border:0;"
+                         title="Moon Age: {{ $moonAge }} days">
+                @else
+                    <span class="text-muted">🌘 Moon image unavailable</span>
+                @endif
+            </li>
+
+            {{-- Moon Phase --}}
             <li class="mb-1">
                 🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_data']['phase'] ?? 'N/A' }}
             </li>
+
+            {{-- Moon Age --}}
             <li class="mb-1">
-                🕓 <strong>Moon Age:</strong> {{ $dayData['moon_data']['age'] ?? 'N/A' }} days
+                🕓 <strong>Moon Age:</strong> {{ $moonAge ?? 'N/A' }} days
             </li>
+
+            {{-- Distance --}}
             <li class="mb-1">
                 📏 <strong>Distance:</strong>
                 {{ isset($dayData['moon_data']['DI']) ? number_format($dayData['moon_data']['DI'], 2) . ' Earth radii' : 'N/A' }}
             </li>
+
+            {{-- Latitude --}}
             <li class="mb-1">
                 🧭 <strong>Latitude:</strong>
                 {{ isset($dayData['moon_data']['LA']) ? number_format($dayData['moon_data']['LA'], 2) . '°' : 'N/A' }}
             </li>
+
+            {{-- Longitude --}}
             <li class="mb-1">
                 📐 <strong>Longitude:</strong>
                 {{ isset($dayData['moon_data']['LO']) ? number_format($dayData['moon_data']['LO'], 2) . '°' : 'N/A' }}
             </li>
-            @if ($dayData['solunar_rating'])
-                <li class="mb-1">🎯 <strong>Solunar Rating:</strong>
+
+            {{-- Solunar Rating --}}
+            @if (!empty($dayData['solunar_rating']))
+                <li class="mb-1">
+                    🎯 <strong>Solunar Rating:</strong>
                     {{ number_format($dayData['solunar_rating'], 1) }} / 4.0
                 </li>
             @endif
 
-            @if ($dayData['all_data'])
+            {{-- Tide Data --}}
+            @if (!empty($dayData['all_data']))
                 <li class="mb-1">
                     🌊 <strong>High Tide:</strong>
                     {{ $dayData['all_data']['high_tide_time'] ?? 'N/A' }}
@@ -93,6 +119,7 @@
             @else
                 <li class="text-muted"><em>No tide data available.</em></li>
             @endif
+
         </ul>
 
         @if(isset($dayData['solunar_rating']))
