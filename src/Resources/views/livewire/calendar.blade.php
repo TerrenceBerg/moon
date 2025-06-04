@@ -101,6 +101,54 @@
                                             <div class="d-none d-md-block">
                                                 <span class="date-info d-block">{{ $month['name'] }}<br>Day {{ $i + 1 }}</span>
                                                 <span class="date-info d-block">{{ $day['moon_phase'] }}</span>
+
+
+                                                {{-- Inline moon/tide info --}}
+                                                @if (!empty($day['moon_data']))
+
+                                                    @php
+                                                        $moonAge = $dayData['moon_data']['age'] ?? null;
+                                                    @endphp
+                                                    @if ($moonAge !== null)
+                                                        <img src="https://storage.976-TUNA.com/images_moon/moon{{ $moonAge }}.webp"
+                                                             alt="Moon Age {{ $moonAge }}"
+                                                             style="width:35px; height:35px; border:0;"
+                                                             title="Moon Age: {{ $moonAge }} days">
+                                                    @else
+                                                        <span class="text-muted">🌘 Moon image unavailable</span>
+                                                    @endif
+
+                                                    <div class="small d-flex flex-wrap gap-2 mt-1 justify-content-center text-nowrap">
+
+                                                        {{-- Moon Age --}}
+                                                        @if (!empty($day['moon_data']['age']))
+                                                            <span>🕓 <strong>Age:</strong> {{ $day['moon_data']['age'] }}d</span>
+                                                        @endif
+
+                                                        {{-- Moon Phase --}}
+                                                        @if (!empty($day['moon_data']['phase']))
+                                                            <span>🌕 <strong>Phase:</strong> {{ $day['moon_data']['phase'] }}</span>
+                                                        @endif
+
+                                                        {{-- Distance --}}
+                                                        @if (!empty($day['moon_data']['DI']))
+                                                            <span>📏 <strong>Dist:</strong> {{ number_format($day['moon_data']['DI'], 1) }} ER</span>
+                                                        @endif
+
+                                                        {{-- Latitude --}}
+                                                        @if (!empty($day['moon_data']['LA']))
+                                                            <span>🧭 <strong>Lat:</strong> {{ number_format($day['moon_data']['LA'], 1) }}°</span>
+                                                        @endif
+
+                                                        {{-- Longitude --}}
+                                                        @if (!empty($day['moon_data']['LO']))
+                                                            <span>📐 <strong>Long:</strong> {{ number_format($day['moon_data']['LO'], 1) }}°</span>
+                                                        @endif
+
+                                                    </div>
+                                                @endif
+
+
                                                 <span class="gregorian-date d-block small text-muted">{{ $day['gregorian_date'] }}</span>
                                                 <span class="date-info d-block">Julian Day {{ $day['julian_day'] }}</span>
 

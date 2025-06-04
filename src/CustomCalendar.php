@@ -88,6 +88,7 @@ class CustomCalendar
                         'gregorian_date' => $day->format('M j, Y'),
                         'is_today' => $day->isToday(),
                         'moon_phase' => $this->getMoonPhase($dayDate),
+                        'moon_data' => $this->getMoonData($dayDate),
                         'tide_data' => $dayTideData ? $this->formatTideData($dayTideData) : null,
                         'solunar_rating' => $solunarData['calculatedRating'] ?? null,
                     ];
