@@ -51,78 +51,77 @@
         </div>
 
         {{-- Tide & Solunar Info --}}
-        <ul class="list-unstyled text-center mb-4 p-3 bg-light rounded shadow-sm d-flex flex-wrap justify-content-center gap-2 small">
+        <ul class="list-unstyled text-center mb-4 p-3 bg-light rounded shadow-sm">
 
             {{-- Moon Image --}}
-            <li class="d-inline-flex align-items-center text-nowrap">
+            <li class="mb-2">
                 @php
                     $moonAge = $dayData['moon_data']['age'] ?? null;
                 @endphp
                 @if ($moonAge !== null)
                     <img src="https://storage.976-TUNA.com/images_moon/moon{{ $moonAge }}.webp"
                          alt="Moon Age {{ $moonAge }}"
-                         style="width:40px; height:40px; border:0;"
+                         style="width:60px; height:60px; border:0;"
                          title="Moon Age: {{ $moonAge }} days">
                 @else
                     <span class="text-muted">🌘 Moon image unavailable</span>
                 @endif
             </li>
 
-            {{-- Moon Phase --}}
-            <li class="d-inline-flex align-items-center text-nowrap">
-                🌕 <strong class="ms-1">Moon Phase:</strong> {{ $dayData['moon_data']['phase'] ?? 'N/A' }}
-            </li>
-
-            {{-- Moon Age --}}
-            <li class="d-inline-flex align-items-center text-nowrap">
-                🕓 <strong class="ms-1">Moon Age:</strong> {{ $moonAge ?? 'N/A' }} days
-            </li>
-
-            {{-- Distance --}}
-            <li class="d-inline-flex align-items-center text-nowrap">
-                📏 <strong class="ms-1">Distance:</strong>
-                {{ isset($dayData['moon_data']['DI']) ? number_format($dayData['moon_data']['DI'], 2) . ' Earth radii' : 'N/A' }}
-            </li>
-
-            {{-- Latitude --}}
-            <li class="d-inline-flex align-items-center text-nowrap">
-                🧭 <strong class="ms-1">Latitude:</strong>
-                {{ isset($dayData['moon_data']['LA']) ? number_format($dayData['moon_data']['LA'], 2) . '°' : 'N/A' }}
-            </li>
-
-            {{-- Longitude --}}
-            <li class="d-inline-flex align-items-center text-nowrap">
-                📐 <strong class="ms-1">Longitude:</strong>
-                {{ isset($dayData['moon_data']['LO']) ? number_format($dayData['moon_data']['LO'], 2) . '°' : 'N/A' }}
-            </li>
-
-            {{-- Solunar Rating --}}
-            @if (!empty($dayData['solunar_rating']))
-                <li class="d-inline-flex align-items-center text-nowrap">
-                    🎯 <strong class="ms-1">Solunar Rating:</strong>
-                    {{ number_format($dayData['solunar_rating'], 1) }} / 4.0
+                {{-- Moon Phase --}}
+                <li class="mb-1 small text-nowrap">
+                    <strong>Moon Phase:</strong> {{ $dayData['moon_data']['phase'] ?? 'N/A' }}
                 </li>
-            @endif
 
-            {{-- Tide Data --}}
-            @if (!empty($dayData['all_data']))
-                <li class="d-inline-flex align-items-center text-nowrap">
-                    🌊 <strong class="ms-1">High Tide:</strong>
-                    {{ $dayData['all_data']['high_tide_time'] ?? 'N/A' }}
-                    ({{ $dayData['all_data']['high_tide_level'] ?? 'N/A' }}m)
+                {{-- Moon Age --}}
+                <li class="mb-1 small text-nowrap">
+                    🕓 <strong>Moon Age:</strong> {{ $moonAge ?? 'N/A' }} days
                 </li>
-                <li class="d-inline-flex align-items-center text-nowrap">
-                    🏖️ <strong class="ms-1">Low Tide:</strong>
-                    {{ $dayData['all_data']['low_tide_time'] ?? 'N/A' }}
-                    ({{ $dayData['all_data']['low_tide_level'] ?? 'N/A' }}m)
+
+                {{-- Distance --}}
+                <li class="mb-1 small text-nowrap">
+                    📏 <strong>Distance:</strong>
+                    {{ isset($dayData['moon_data']['DI']) ? number_format($dayData['moon_data']['DI'], 2) . ' Earth radii' : 'N/A' }}
                 </li>
-            @else
-                <li class="d-inline-flex align-items-center text-nowrap text-muted">
-                    <em>No tide data available.</em>
+
+                {{-- Latitude --}}
+                <li class="mb-1 small text-nowrap">
+                    🧭 <strong>Latitude:</strong>
+                    {{ isset($dayData['moon_data']['LA']) ? number_format($dayData['moon_data']['LA'], 2) . '°' : 'N/A' }}
                 </li>
-            @endif
+
+                {{-- Longitude --}}
+                <li class="mb-1 small text-nowrap">
+                    📐 <strong>Longitude:</strong>
+                    {{ isset($dayData['moon_data']['LO']) ? number_format($dayData['moon_data']['LO'], 2) . '°' : 'N/A' }}
+                </li>
+
+                {{-- Solunar Rating --}}
+                @if (!empty($dayData['solunar_rating']))
+                    <li class="mb-1 small text-nowrap">
+                        🎯 <strong>Solunar Rating:</strong>
+                        {{ number_format($dayData['solunar_rating'], 1) }} / 4.0
+                    </li>
+                @endif
+
+                {{-- Tide Data --}}
+                @if (!empty($dayData['all_data']))
+                    <li class="mb-1 small text-nowrap">
+                        🌊 <strong>High Tide:</strong>
+                        {{ $dayData['all_data']['high_tide_time'] ?? 'N/A' }}
+                        ({{ $dayData['all_data']['high_tide_level'] ?? 'N/A' }}m)
+                    </li>
+                    <li class="mb-1 small text-nowrap">
+                        🏖️ <strong>Low Tide:</strong>
+                        {{ $dayData['all_data']['low_tide_time'] ?? 'N/A' }}
+                        ({{ $dayData['all_data']['low_tide_level'] ?? 'N/A' }}m)
+                    </li>
+                @else
+                    <li class="text-muted small text-nowrap"><em>No tide data available.</em></li>
+                @endif
 
         </ul>
+
         @if(isset($dayData['solunar_rating']))
             @php $rating = $dayData['solunar_rating']; @endphp
             <div class="d-flex justify-content-center">
