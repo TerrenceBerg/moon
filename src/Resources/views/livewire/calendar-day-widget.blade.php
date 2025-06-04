@@ -54,6 +54,24 @@
         <ul class="list-unstyled mb-3 ps-1 text-center">
             <li class="mb-1">🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_phase'] }}</li>
 
+            <li class="mb-1">
+                🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_phase'] ?? 'N/A' }}
+            </li>
+            <li class="mb-1">
+                🕓 <strong>Moon Age:</strong> {{ $dayData['moon_data']['age'] ?? 'N/A' }} days
+            </li>
+            <li class="mb-1">
+                📏 <strong>Distance:</strong>
+                {{ isset($dayData['moon_data']['DI']) ? number_format($dayData['moon_data']['DI'], 2) . ' Earth radii' : 'N/A' }}
+            </li>
+            <li class="mb-1">
+                🧭 <strong>Latitude:</strong>
+                {{ isset($dayData['moon_data']['LA']) ? number_format($dayData['moon_data']['LA'], 2) . '°' : 'N/A' }}
+            </li>
+            <li class="mb-1">
+                📐 <strong>Longitude:</strong>
+                {{ isset($dayData['moon_data']['LO']) ? number_format($dayData['moon_data']['LO'], 2) . '°' : 'N/A' }}
+            </li>
             @if ($dayData['solunar_rating'])
                 <li class="mb-1">🎯 <strong>Solunar Rating:</strong>
                     {{ number_format($dayData['solunar_rating'], 1) }} / 4.0

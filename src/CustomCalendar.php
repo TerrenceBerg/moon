@@ -238,6 +238,7 @@ class CustomCalendar
         $date = Carbon::parse($date ?? now())->toDateString();
 
         $moonPhase = $this->getMoonPhase($date);
+        $moonData = $this->getMoonData($date);
 
         $tideFetcher = new TideDataFetcher();
         $tideData = $tideFetcher->fetchTideData($lat, $lon, $date);
@@ -250,6 +251,7 @@ class CustomCalendar
             'julian_day' => Carbon::parse($date)->dayOfYear,
             'is_today' => Carbon::parse($date)->isToday(),
             'moon_phase' => $moonPhase,
+            'moon_data' => $moonData,
             'all_data' => $tideData,
             'solunar_rating' => $solunarData['calculatedRating'] ?? null,
             'solunar_data' => $solunarData ?? null,
@@ -473,6 +475,84 @@ class CustomCalendar
                 $entry
             );
         }
+    }
+    private function getMoonData($date)
+    {
+        $date = Carbon::parse($date);
+        $Y = $date->year;
+        $M = $date->month;
+        $D = $date->day;
+
+        if ($M < 3) {
+            $Y--;
+            $M += 12;
+        }
+
+        $M++; // Adjust for Julian algorithm
+        $P2 = 2 * M_PI;
+
+        $YY = $Y - intval((12 - $M) / 10);
+        $MM = ($M + 9) % 12;
+
+        $K1 = intval(365.25 * ($YY + 4712));
+        $K2 = intval(30.6 * $MM + 0.5);
+        $K3 = intval(intval($YY / 100 + 49) * 0.75) - 38;
+
+        $J = $K1 + $K2 + $D + 59;
+        if ($J > 2299160) {
+            $J -= $K3;
+        }
+
+        // Synodic (illumination) phase
+        $V = fmod(($J - 2451550.1) / 29.530588853, 1);
+        if ($V < 0) $V += 1;
+        $IP = $V;
+        $AG = $IP * 29.53; // Moon's age in days
+        $IP *= $P2;
+
+        // Distance (anomalistic phase)
+        $V = fmod(($J - 2451562.2) / 27.55454988, 1);
+        if ($V < 0) $V += 1;
+        $DP = $V * $P2;
+
+        $DI = 60.4 - 3.3 * cos($DP) - 0.6 * cos(2 * $IP - $DP) - 0.5 * cos(2 * $IP);
+
+        // Latitude (draconic phase)
+        $V = fmod(($J - 2451565.2) / 27.212220817, 1);
+        if ($V < 0) $V += 1;
+        $NP = $V * $P2;
+
+        $LA = 5.1 * sin($NP);
+
+        // Longitude (sidereal phase)
+        $V = fmod(($J - 2451555.8) / 27.321582241, 1);
+        if ($V < 0) $V += 1;
+        $RP = $V;
+
+        $LO = 360 * $RP + 6.3 * sin($DP) + 1.3 * sin(2 * $IP - $DP) + 0.7 * sin(2 * $IP);
+
+        // Determine moon phase
+        $phases = [
+            'New Moon 🌑',
+            'Waxing Crescent 🌒',
+            'First Quarter 🌓',
+            'Waxing Gibbous 🌔',
+            'Full Moon 🌕',
+            'Waning Gibbous 🌖',
+            'Last Quarter 🌗',
+            'Waning Crescent 🌘',
+        ];
+
+        $phaseIndex = (int) floor($AG / 3.7);
+        $phaseIndex = min($phaseIndex, 7);
+
+        return [
+            'age'   => intval($AG),
+            'phase' => $phases[$phaseIndex],
+            'DI'    => round($DI, 2),
+            'LA'    => round($LA, 2),
+            'LO'    => round($LO, 2),
+        ];
     }
 
 }

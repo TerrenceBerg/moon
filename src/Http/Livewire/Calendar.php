@@ -15,12 +15,12 @@ use Tuna976\CustomCalendar\Models\NOAATideForecast;
 
 class Calendar extends Component
 {
-    protected $listeners = ['updateLocationFromBrowser' => 'setLocationFromBrowser','updateStation' => 'setStation'];
+    protected $listeners = ['updateLocationFromBrowser' => 'setLocationFromBrowser', 'updateStation' => 'setStation'];
 
     public $stations, $selectedStationId, $selectedStation, $location, $calendarData;
     public $loading = false, $selectedDate, $modalData, $showModal = false;
-    public $temperatureUnit='F';
-    public $currentsData,$stationMoreData,$solunarData;
+    public $temperatureUnit = 'F';
+    public $currentsData, $stationMoreData, $solunarData;
 
 
     public function mount()
@@ -115,9 +115,119 @@ class Calendar extends Component
 
     private function getMoonPhase($date)
     {
-        $moonPhases = ['New Moon 🌑', 'Waxing Crescent 🌒', 'First Quarter 🌓', 'Waxing Gibbous 🌔', 'Full Moon 🌕', 'Waning Gibbous 🌖', 'Last Quarter 🌗', 'Waning Crescent 🌘'];
-        $daysSinceNewMoon = Carbon::create(2000, 1, 6, 18, 14, 0)->floatDiffInDays(Carbon::parse($date));
-        return $moonPhases[(int)round(($daysSinceNewMoon % 29.53058867) / 29.53058867 * 8) % 8] ?? null;
+        $date = Carbon::parse($date);
+        $year = $date->year;
+        $month = $date->month;
+        $day = $date->day;
+
+        if ($month < 3) {
+            $year--;
+            $month += 12;
+        }
+
+        ++$month;
+
+        $c = 365.25 * $year;
+        $e = 30.6 * $month;
+        $jd = $c + $e + $day - 694039.09;  // jd is total days elapsed
+        $jd /= 29.5305882;                 // divide by the moon cycle
+        $b = (int)$jd;                     // int(jd) -> completed cycles
+        $jd -= $b;                         // subtract integer part to leave fractional part
+        $phaseIndex = (int)round($jd * 8) % 8;
+
+        $phases = [
+            'New Moon 🌑',
+            'Waxing Crescent 🌒',
+            'First Quarter 🌓',
+            'Waxing Gibbous 🌔',
+            'Full Moon 🌕',
+            'Waning Gibbous 🌖',
+            'Last Quarter 🌗',
+            'Waning Crescent 🌘'
+        ];
+
+        return $phases[$phaseIndex];
+    }
+
+
+
+    private function getMoonData($date)
+    {
+        $date = Carbon::parse($date);
+        $Y = $date->year;
+        $M = $date->month;
+        $D = $date->day;
+
+        if ($M < 3) {
+            $Y--;
+            $M += 12;
+        }
+
+        $M++; // Adjust for Julian algorithm
+        $P2 = 2 * M_PI;
+
+        $YY = $Y - intval((12 - $M) / 10);
+        $MM = ($M + 9) % 12;
+
+        $K1 = intval(365.25 * ($YY + 4712));
+        $K2 = intval(30.6 * $MM + 0.5);
+        $K3 = intval(intval($YY / 100 + 49) * 0.75) - 38;
+
+        $J = $K1 + $K2 + $D + 59;
+        if ($J > 2299160) {
+            $J -= $K3;
+        }
+
+        // Synodic (illumination) phase
+        $V = fmod(($J - 2451550.1) / 29.530588853, 1);
+        if ($V < 0) $V += 1;
+        $IP = $V;
+        $AG = $IP * 29.53; // Moon's age in days
+        $IP *= $P2;
+
+        // Distance (anomalistic phase)
+        $V = fmod(($J - 2451562.2) / 27.55454988, 1);
+        if ($V < 0) $V += 1;
+        $DP = $V * $P2;
+
+        $DI = 60.4 - 3.3 * cos($DP) - 0.6 * cos(2 * $IP - $DP) - 0.5 * cos(2 * $IP);
+
+        // Latitude (draconic phase)
+        $V = fmod(($J - 2451565.2) / 27.212220817, 1);
+        if ($V < 0) $V += 1;
+        $NP = $V * $P2;
+
+        $LA = 5.1 * sin($NP);
+
+        // Longitude (sidereal phase)
+        $V = fmod(($J - 2451555.8) / 27.321582241, 1);
+        if ($V < 0) $V += 1;
+        $RP = $V;
+
+        $LO = 360 * $RP + 6.3 * sin($DP) + 1.3 * sin(2 * $IP - $DP) + 0.7 * sin(2 * $IP);
+
+        // Determine moon phase
+        $phases = [
+            'New Moon 🌑',
+            'Waxing Crescent 🌒',
+            'First Quarter 🌓',
+            'Waxing Gibbous 🌔',
+            'Full Moon 🌕',
+            'Waning Gibbous 🌖',
+            'Last Quarter 🌗',
+            'Waning Crescent 🌘',
+        ];
+
+        $phaseIndex = (int) floor($AG / 3.7);
+        $phaseIndex = min($phaseIndex, 7);
+
+        return [
+            'age'   => intval($AG),
+            'phase' => $phases[$phaseIndex],
+            'DI'    => round($DI, 2),
+            'LA'    => round($LA, 2),
+            'LO'    => round($LO, 2),
+        ];
     }
 
     private function storeSunriseSunsetData($date)
@@ -176,7 +286,7 @@ class Calendar extends Component
     {
 //        $ip = request()->ip();
 //        if (in_array($ip, ['127.0.0.1', '::1'])) {
-            return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
+        return ['lat' => 34.0522, 'lon' => -118.2437, 'city' => 'Los Angeles'];
 //            return ['lat' => 36.7783, 'lon' => 119.4179, 'city' => 'Los Angeles'];
 //            return ['lat' => 32.715736, 'lon' => -117.161087, 'city' => 'San Diego'];
 //        }
@@ -249,6 +359,7 @@ class Calendar extends Component
             \Log::error("Error fetching tide data: " . $e->getMessage());
         }
     }
+
     private function storeTideData($predictions, $stationId)
     {
         $tideData = [];
@@ -315,6 +426,7 @@ class Calendar extends Component
             return null;
         }
     }
+
     public function fetchAllNoaaProducts($stationId, $date)
     {
         $results = [];
@@ -357,11 +469,11 @@ class Calendar extends Component
                     $timestamp = Carbon::parse($item['t']);
 
                     NOAAEnvironmentalReading::updateOrCreate([
-                        'station_id'   => $stationId,
-                        'product'      => $product,
+                        'station_id' => $stationId,
+                        'product' => $product,
                         'reading_time' => $timestamp,
                     ], [
-                        'date'  => $timestamp->toDateString(),
+                        'date' => $timestamp->toDateString(),
                         'value' => $item['v'],
                     ]);
                 }
@@ -400,6 +512,7 @@ class Calendar extends Component
             return $ratings;
         });
     }
+
     public function getSolunarData($lat, $lng, $date, $offset = -4)
     {
         $cacheKey = "solunar_rating_{$lat}_{$lng}_{$date}";
@@ -433,7 +546,7 @@ class Calendar extends Component
         }
     }
 
-    public function setLocationFromBrowser($lat, $lon,$city)
+    public function setLocationFromBrowser($lat, $lon, $city)
     {
         $this->location = [
             'lat' => $lat,
