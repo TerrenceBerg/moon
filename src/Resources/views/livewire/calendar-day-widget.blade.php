@@ -52,7 +52,7 @@
 
         {{-- Tide & Solunar Info --}}
         <ul class="list-unstyled mb-3 ps-1 text-center">
-            <li class="mb-1">🌕<img src="https://storage.976-TUNA.com/images_moon/moon' .  {{ $dayData['moon_data']['age'] ?? 'N/A' }} . '.webp" style="width:50px; height:50px; border:none;" title="' .  {{ $dayData['moon_data']['age'] ?? 'N/A' }} . '"></li>
+            <li class="mb-1"><img src="https://storage.976-TUNA.com/images_moon/moon' .  {{ $dayData['moon_data']['age'] ?? 'N/A' }} . '.webp" style="width:50px; height:50px; border:none;" title="' .  {{ $dayData['moon_data']['age'] ?? 'N/A' }} . '"></li>
 
             <li class="mb-1">🌕 <strong>Moon Phase:</strong> {{ $dayData['moon_phase'] }}</li>
 
@@ -147,11 +147,11 @@
                                 <div class="col-md-4 mb-2">
                                     <h6 class="text-dark mb-1">🌙 Moon</h6>
                                     <ul class="list-unstyled small mb-0">
-                                        <li><strong>Rise:</strong> {{ $solunarData['moonRise'] }}</li>
-                                        <li><strong>Transit:</strong> {{ $solunarData['moonTransit'] }}</li>
-                                        <li><strong>Set:</strong> {{ $solunarData['moonSet'] }}</li>
-                                        <li><strong>Phase:</strong> {{ $solunarData['moonPhase'] }}</li>
-                                        <li><strong>Illumination:</strong> {{ round($solunarData['moonIllumination'] * 100) }}%</li>
+                                        <li><strong>Rise:</strong> {{ $solunarData['moonRise'] ?? 'N/A' }}</li>
+                                        <li><strong>Transit:</strong> {{ $solunarData['moonTransit'] ?? 'N/A' }}</li>
+                                        <li><strong>Set:</strong> {{ $solunarData['moonSet'] ?? 'N/A' }}</li>
+                                        <li><strong>Phase:</strong> {{ $solunarData['moonPhase'] ?? 'N/A' }}</li>
+                                        <li><strong>Illumination:</strong> {{ isset($solunarData['moonIllumination']) ? round($solunarData['moonIllumination'] * 100) . '%' : 'N/A' }}</li>
                                     </ul>
                                 </div>
                                 <div class="d-lg-none"><hr></div>

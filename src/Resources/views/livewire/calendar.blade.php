@@ -213,12 +213,12 @@
                                     <!-- Moon Info -->
                                     <div class="col-md-4 mb-2">
                                         <h6 class="text-dark mb-1">🌙 Moon</h6>
-                                        <ul class="list-unstyled mb-0">
-                                            <li><strong>Rise:</strong> {{ $solunarData['moonRise'] }}</li>
-                                            <li><strong>Transit:</strong> {{ $solunarData['moonTransit'] }}</li>
-                                            <li><strong>Set:</strong> {{ $solunarData['moonSet'] }}</li>
-                                            <li><strong>Phase:</strong> {{ $solunarData['moonPhase'] }}</li>
-                                            <li><strong>Illumination:</strong> {{ round($solunarData['moonIllumination'] * 100) }}%</li>
+                                        <ul class="list-unstyled small mb-0">
+                                            <li><strong>Rise:</strong> {{ $solunarData['moonRise'] ?? 'N/A' }}</li>
+                                            <li><strong>Transit:</strong> {{ $solunarData['moonTransit'] ?? 'N/A' }}</li>
+                                            <li><strong>Set:</strong> {{ $solunarData['moonSet'] ?? 'N/A' }}</li>
+                                            <li><strong>Phase:</strong> {{ $solunarData['moonPhase'] ?? 'N/A' }}</li>
+                                            <li><strong>Illumination:</strong> {{ isset($solunarData['moonIllumination']) ? round($solunarData['moonIllumination'] * 100) . '%' : 'N/A' }}</li>
                                         </ul>
                                     </div>
 
