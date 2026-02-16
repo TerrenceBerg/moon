@@ -134,7 +134,7 @@
                                                     <a style="cursor: pointer; font-size: 10px; font-weight: bold"
                                                        href="" class="text-dark"
                                                        wire:click.prevent="loadMoreData('{{ $day['date'] }}')">
-                                                        {{++$i}}
+                                                        {{$i+1}}
                                                     </a>
                                                 </div>
                                             </div>
