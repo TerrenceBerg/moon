@@ -20,122 +20,141 @@ class CustomCalendar
     {
         $this->year = $year ?? Carbon::now()->year;
         $this->stationId = $stationId;
+
         if (isset($stationId)) {
             $this->selectedStation = NOAAStation::find($this->stationId);
         }
     }
-
+    
     public function generateCalendar($year = null, $stationId = null)
     {
-        ini_set('max_execution_time', 300); // Reduce to a sensible value if caching is in place
-        $currentYear = $year ?? Carbon::now()->year;
-        $stationId = $stationId ?? $this->stationId;
-        $station = NOAAStation::where('id', $stationId)->firstOrFail();
-        $yearRange = [$currentYear];
-        $calendarData = [];
+        ini_set('max_execution_time', 300);
 
-        $solarEvents = SolarEvent::whereIn('year', $yearRange)->pluck('march_equinox', 'year');
+        $selectedYear = (int)($year ?? Carbon::now()->year);
+        $stationId = $stationId ?? $this->stationId;
+
+        $station = NOAAStation::where('id', $stationId)->firstOrFail();
+
+        // This is the key change for "Option 2"
+        $startEquinoxYear = $selectedYear - 1;
+
+        // Need equinox for start year (and optionally selectedYear if your DB logic ever needs it)
+        $solarEvents = SolarEvent::whereIn('year', [$startEquinoxYear, $selectedYear])
+            ->pluck('march_equinox', 'year');
+
+        if (!isset($solarEvents[$startEquinoxYear])) {
+            // No equinox data for start year => can't generate
+            return [];
+        }
+
+        $vernalEquinox = Carbon::parse($solarEvents[$startEquinoxYear])->startOfDay();
+
+        // 13 moons * 28 days = 364 days total. (day 0..363)
+        $rangeStart = $vernalEquinox->copy()->toDateString();
+        $rangeEnd   = $vernalEquinox->copy()->addDays(363)->toDateString();
+
+        // Pull NOAA rows only for this window (covers Feb of selectedYear properly)
         $noaaData = NOAATideForecast::where('station_id', $station->id)
-            ->whereIn('year', $yearRange)
+            ->whereBetween('date', [$rangeStart, $rangeEnd])
             ->get()
             ->groupBy('date');
 
         $moons = $this->getMoonPhases();
 
-        foreach ($yearRange as $year) {
-            if (!isset($solarEvents[$year])) {
-                continue;
-            }
+        $months = [];
 
-            $vernalEquinox = Carbon::parse($solarEvents[$year]);
-            $months = [];
+        foreach ($moons as $moon) {
+            $monthStart = $vernalEquinox->copy()->addDays((int)$moon['offset']);
+            $monthDays = [];
 
-            foreach ($moons as $moon) {
-                $monthStart = $vernalEquinox->copy()->addDays($moon['offset']);
-                $monthDays = [];
+            for ($i = 0; $i < 28; $i++) {
+                $day = $monthStart->copy()->addDays($i);
+                $dayDate = $day->toDateString();
 
-//                $cacheKeys = [];
-//                $dateMap = [];
+                $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$dayDate}";
+                $solunarData = Cache::get($cacheKey);
 
-                // Prepare cache keys for 28 days of the month
-                for ($i = 0; $i < 28; $i++) {
-                    $date = $monthStart->copy()->addDays($i)->toDateString();
-//                    $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$date}";
-//                    $cacheKeys[] = $cacheKey;
-//                    $dateMap[$cacheKey] = $date;
+                if (!$solunarData) {
+                    $solunarData = $this->getSolunarData($station->latitude, $station->longitude, $dayDate);
+                    // getSolunarData already caches for 30 days
                 }
 
-//                $solunarBulk = Cache::many($cacheKeys);
+                $dayTideData = $noaaData[$dayDate][0] ?? null;
 
-                for ($i = 0; $i < 28; $i++) {
-                    $day = $monthStart->copy()->addDays($i);
-                    $dayDate = $day->toDateString();
+                $monthDays[] = [
+                    'date' => $dayDate,
+                    'day_of_week' => $day->format('l'),
+                    'julian_day' => $day->dayOfYear,
+                    'gregorian_date' => $day->format('M j, Y'),
+                    'is_today' => $day->isToday(),
+                    'moon_phase' => $this->getMoonPhase($dayDate),
+                    'moon_data' => $this->getMoonData($dayDate),
+                    'tide_data' => $dayTideData ? $this->formatTideData($dayTideData) : null,
+                    'solunar_rating' => $solunarData['calculatedRating'] ?? null,
 
-                    $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$dayDate}";
-//                    $solunarData = $solunarBulk[$cacheKey] ?? null;
-                    $solunarData = null;
-
-                    if (!$solunarData) {
-                        $solunarData = $this->getSolunarData($station->latitude, $station->longitude, $dayDate);
-                    }
-
-                    $dayTideData = $noaaData[$dayDate][0] ?? null;
-
-                    $dayInfo = [
-                        'date' => $dayDate,
-                        'day_of_week' => $day->format('l'),
-                        'julian_day' => $day->dayOfYear,
-                        'gregorian_date' => $day->format('M j, Y'),
-                        'is_today' => $day->isToday(),
-                        'moon_phase' => $this->getMoonPhase($dayDate),
-                        'moon_data' => $this->getMoonData($dayDate),
-                        'tide_data' => $dayTideData ? $this->formatTideData($dayTideData) : null,
-                        'solunar_rating' => $solunarData['calculatedRating'] ?? null,
-                    ];
-
-                    $monthDays[] = $dayInfo;
-                }
-
-                $months[] = [
-                    'name' => $moon['name'],
-                    'start_date' => $monthStart->toDateString(),
-                    'end_date' => $monthStart->copy()->addDays(27)->toDateString(),
-                    'start_day_of_week' => $monthStart->format('l'),
-                    'days' => $monthDays,
+                    // Optional helpers if you ever want to show "Gregorian month headers"
+                    'gregorian_month' => $day->format('F'),
+                    'gregorian_year' => (int)$day->format('Y'),
                 ];
             }
 
-            $calendarData[$year] = [
-                'is_leap_year' => $this->isLeapYear($year),
-                'months' => $months,
+            $months[] = [
+                'name' => $moon['name'],
+                'start_date' => $monthStart->toDateString(),
+                'end_date' => $monthStart->copy()->addDays(27)->toDateString(),
+                'start_day_of_week' => $monthStart->format('l'),
+                'days' => $monthDays,
             ];
         }
 
-        return $calendarData;
+        // Return under the SELECTED year label (e.g., 2026)
+        return [
+            $selectedYear => [
+                'is_leap_year' => $this->isLeapYear($selectedYear),
+                'months' => $months,
+                'range_start' => $rangeStart,
+                'range_end' => $rangeEnd,
+                'equinox_year' => $startEquinoxYear,
+            ],
+        ];
     }
+
+    /**
+     * Generate a single 13-moon month (index 0..12) for the selectedYear window.
+     * selectedYear=2026 => equinoxYear=2025
+     */
     public function generateCalendarMonth($year, $stationId, $monthIndex)
     {
-        ini_set('max_execution_time', 120); // Limit for single month
+        ini_set('max_execution_time', 120);
 
+        $selectedYear = (int)$year;
         $station = NOAAStation::where('id', $stationId)->firstOrFail();
-        $solarEvents = SolarEvent::where('year', $year)->pluck('march_equinox', 'year');
 
-        if (!isset($solarEvents[$year])) {
-            throw new \Exception("No solar event data for year $year.");
+        $startEquinoxYear = $selectedYear - 1;
+
+        $solarEvents = SolarEvent::whereIn('year', [$startEquinoxYear, $selectedYear])
+            ->pluck('march_equinox', 'year');
+
+        if (!isset($solarEvents[$startEquinoxYear])) {
+            throw new \Exception("No solar event data (march_equinox) for year {$startEquinoxYear}.");
         }
 
-        $vernalEquinox = Carbon::parse($solarEvents[$year]);
+        $vernalEquinox = Carbon::parse($solarEvents[$startEquinoxYear])->startOfDay();
         $moons = $this->getMoonPhases();
 
         if (!isset($moons[$monthIndex])) {
-            throw new \Exception("Invalid month index $monthIndex.");
+            throw new \Exception("Invalid month index {$monthIndex}.");
         }
 
         $moon = $moons[$monthIndex];
-        $monthStart = $vernalEquinox->copy()->addDays($moon['offset']);
+        $monthStart = $vernalEquinox->copy()->addDays((int)$moon['offset']);
+
+        // Pull NOAA only for this 28-day month window
+        $start = $monthStart->copy()->toDateString();
+        $end   = $monthStart->copy()->addDays(27)->toDateString();
 
         $noaaData = NOAATideForecast::where('station_id', $station->id)
-            ->whereYear('date', $year)
+            ->whereBetween('date', [$start, $end])
             ->get()
             ->groupBy('date');
 
@@ -145,117 +164,36 @@ class CustomCalendar
             $day = $monthStart->copy()->addDays($i);
             $dayDate = $day->toDateString();
 
-            // Fetch fresh solunar data
             $solunarData = $this->getSolunarData($station->latitude, $station->longitude, $dayDate);
-
             $dayTideData = $noaaData[$dayDate][0] ?? null;
 
-            $dayInfo = [
+            $monthDays[] = [
                 'date' => $dayDate,
                 'day_of_week' => $day->format('l'),
                 'julian_day' => $day->dayOfYear,
                 'gregorian_date' => $day->format('M j, Y'),
                 'is_today' => $day->isToday(),
                 'moon_phase' => $this->getMoonPhase($dayDate),
+                'moon_data' => $this->getMoonData($dayDate),
                 'tide_data' => $dayTideData ? $this->formatTideData($dayTideData) : null,
                 'solunar_rating' => $solunarData['calculatedRating'] ?? null,
+                'gregorian_month' => $day->format('F'),
+                'gregorian_year' => (int)$day->format('Y'),
             ];
-
-            $monthDays[] = $dayInfo;
         }
 
         return [
-            'year' => $year,
+            'year' => $selectedYear,
+            'equinox_year' => $startEquinoxYear,
             'station_id' => $station->id,
             'station_name' => $station->name,
-            'month_index' => $monthIndex,
+            'month_index' => (int)$monthIndex,
             'month_name' => $moon['name'],
             'start_date' => $monthStart->toDateString(),
             'end_date' => $monthStart->copy()->addDays(27)->toDateString(),
             'start_day_of_week' => $monthStart->format('l'),
             'days' => $monthDays,
-            'is_leap_year' => $this->isLeapYear($year),
-        ];
-    }
-    public function generateDayData($date = null, $stationId = null)
-    {
-        $date = Carbon::parse($date ?? now())->toDateString();
-        $station = NOAAStation::where('id', $stationId ?? $this->stationId)->firstOrFail();
-
-        // Solar Event
-        $solarEvent = SolarEvent::where('year', Carbon::parse($date)->year)->first();
-        $vernalEquinox = $solarEvent ? Carbon::parse($solarEvent->march_equinox) : null;
-
-        // Moon Phase
-        $moonPhase = $this->getMoonPhase($date);
-
-        // Tide Data
-        $tideData = NOAATideForecast::where('station_id', $station->id)
-            ->where('date', $date)
-            ->first();
-
-        if (!$tideData || !$tideData->high_tide_time || !$tideData->low_tide_time) {
-            $this->selectedStation = $station;
-            $this->selectedStationId = $station->id;
-            $this->getTideData($date);
-            $tideData = NOAATideForecast::where('station_id', $station->id)
-                ->where('date', $date)
-                ->first();
-        }
-
-        // Weather Data
-        if ($tideData && (!$tideData->min_temp || !$tideData->precipitation || !$tideData->weather_code)) {
-            $weatherData = $this->fetchWeather($date);
-            if ($weatherData) {
-                $tideData->update($weatherData);
-            }
-        }
-
-        // Solunar Rating
-        $cacheKey = "solunar_rating_{$station->latitude}_{$station->longitude}_{$date}";
-        $solunarData = Cache::get($cacheKey);
-        if (!$solunarData) {
-            $solunarData = $this->getSolunarData($station->latitude, $station->longitude, $date);
-//            if ($solunarData) {
-//                Cache::put($cacheKey, $solunarData, now()->addDays(2));
-//            }
-        }
-
-        return [
-            'date' => $date,
-            'gregorian_date' => Carbon::parse($date)->format('l, M j, Y'),
-            'julian_day' => Carbon::parse($date)->dayOfYear,
-            'is_today' => Carbon::parse($date)->isToday(),
-            'moon_phase' => $moonPhase,
-            'all_data' => $tideData->toArray(),
-            'solunar_rating' => $solunarData['calculatedRating'] ?? null,
-            'solunar_data' => $solunarData ?? null,
-            'vernal_equinox' => $vernalEquinox ? $vernalEquinox->format('Y-m-d H:i:s') : null,
-        ];
-    }
-
-    public function generateDayDataLive($lat, $lon, $date = null)
-    {
-        $date = Carbon::parse($date ?? now())->toDateString();
-
-        $moonPhase = $this->getMoonPhase($date);
-        $moonData = $this->getMoonData($date);
-
-        $tideFetcher = new TideDataFetcher();
-        $tideData = $tideFetcher->fetchTideData($lat, $lon, $date);
-
-        $solunarData = $this->getSolunarData($lat, $lon, $date);
-        return [
-            'date' => $date,
-            'station_name' => $tideData['station_name'] ?? 'Unknown',
-            'gregorian_date' => Carbon::parse($date)->format('l, M j, Y'),
-            'julian_day' => Carbon::parse($date)->dayOfYear,
-            'is_today' => Carbon::parse($date)->isToday(),
-            'moon_phase' => $moonPhase,
-            'moon_data' => $moonData,
-            'all_data' => $tideData,
-            'solunar_rating' => $solunarData['calculatedRating'] ?? null,
-            'solunar_data' => $solunarData ?? null,
+            'is_leap_year' => $this->isLeapYear($selectedYear),
         ];
     }
 
@@ -291,17 +229,6 @@ class CustomCalendar
         ];
 
         return $moonPhases[(int)round(($daysSinceNewMoon % $synodicMonth) / $synodicMonth * 8) % 8] ?? null;
-    }
-
-    private function formatSolarEvents($date)
-    {
-        $carbonDate = Carbon::parse($date);
-        return [
-            'march_equinox' => $carbonDate->format('d-m-Y H:i:s'),
-            'june_solstice' => $carbonDate->addMonths(3)->format('d-m-Y H:i:s'),
-            'september_equinox' => $carbonDate->addMonths(6)->format('d-m-Y H:i:s'),
-            'december_solstice' => $carbonDate->addMonths(9)->format('d-m-Y H:i:s'),
-        ];
     }
 
     private function isLeapYear($year)
@@ -370,6 +297,7 @@ class CustomCalendar
             ];
         }
     }
+
     private function fetchWeather($date)
     {
         try {
@@ -429,7 +357,7 @@ class CustomCalendar
                 }
 
                 match ($product) {
-                    'predictions' => $this->storeTideData($data['predictions'], $this->selectedStationId)
+                    'predictions' => $this->storeTideData($data['predictions'], $this->stationId)
                 };
             }
         } catch (\Throwable $e) {
@@ -477,6 +405,7 @@ class CustomCalendar
             );
         }
     }
+
     private function getMoonData($date)
     {
         $date = Carbon::parse($date);
@@ -489,7 +418,7 @@ class CustomCalendar
             $M += 12;
         }
 
-        $M++; // Adjust for Julian algorithm
+        $M++;
         $P2 = 2 * M_PI;
 
         $YY = $Y - intval((12 - $M) / 10);
@@ -504,35 +433,30 @@ class CustomCalendar
             $J -= $K3;
         }
 
-        // Synodic (illumination) phase
         $V = fmod(($J - 2451550.1) / 29.530588853, 1);
         if ($V < 0) $V += 1;
         $IP = $V;
-        $AG = $IP * 29.53; // Moon's age in days
+        $AG = $IP * 29.53;
         $IP *= $P2;
 
-        // Distance (anomalistic phase)
         $V = fmod(($J - 2451562.2) / 27.55454988, 1);
         if ($V < 0) $V += 1;
         $DP = $V * $P2;
 
         $DI = 60.4 - 3.3 * cos($DP) - 0.6 * cos(2 * $IP - $DP) - 0.5 * cos(2 * $IP);
 
-        // Latitude (draconic phase)
         $V = fmod(($J - 2451565.2) / 27.212220817, 1);
         if ($V < 0) $V += 1;
         $NP = $V * $P2;
 
         $LA = 5.1 * sin($NP);
 
-        // Longitude (sidereal phase)
         $V = fmod(($J - 2451555.8) / 27.321582241, 1);
         if ($V < 0) $V += 1;
         $RP = $V;
 
         $LO = 360 * $RP + 6.3 * sin($DP) + 1.3 * sin(2 * $IP - $DP) + 0.7 * sin(2 * $IP);
 
-        // Determine moon phase
         $phases = [
             'New Moon 🌑',
             'Waxing Crescent 🌒',
@@ -555,5 +479,4 @@ class CustomCalendar
             'LO'    => round($LO, 2),
         ];
     }
-
 }
