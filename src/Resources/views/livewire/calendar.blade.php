@@ -96,56 +96,58 @@
                                              id="day-{{ $day['date'] }}"
                                              style="{{ $day['is_today'] ? 'background-color: lightgreen; color: black; border: 2px solid green;' : '' }}">
 
-                                            <!-- Desktop View -->
+                                            <!-- Desktop View (Hides on Mobile) -->
                                             <div class="d-none d-md-block">
-                                                <span class="date-info d-block">{{ $month['name'] }}<br>Day {{ $i + 1 }}</span>
+                                                <span class="date-infoh">{{ $month['name'] }} Day {{++$i}}</span>
+                                                <hr>
                                                 <span class="date-info d-block">{{ $day['moon_phase'] }}</span>
 
 
                                                 {{-- Inline moon/tide info --}}
                                                 @if (!empty($day['moon_data']))
 
-                                                    <div class=" d-flex flex-wrap gap-2 mt-1 justify-content-center text-nowrap">
-
+                                                    <div class="text-center ">
                                                         {{-- Moon Age --}}
                                                         @if (!empty($day['moon_data']['age']))
-                                                            <span>🕓 <strong>Age:</strong> {{ $day['moon_data']['age'] }}d</span>
+                                                            <small>🕓 Age: {{ $day['moon_data']['age'] }}d</small><br>
                                                         @endif
 
                                                         {{-- Moon Phase --}}
                                                         @if (!empty($day['moon_data']['phase']))
-                                                            <span>🌕 <strong>Phase:</strong> {{ $day['moon_data']['phase'] }}</span>
+                                                            <small>🌕 Phase: {{ $day['moon_data']['phase'] }}</small><br>
                                                         @endif
 
                                                         {{-- Distance --}}
                                                         @if (!empty($day['moon_data']['DI']))
-                                                            <span>📏 <strong>Dist:</strong> {{ number_format($day['moon_data']['DI'], 1) }} ER</span>
+                                                            <small>📏 Dist: {{ number_format($day['moon_data']['DI'], 1) }} ER</small><br>
                                                         @endif
 
                                                         {{-- Latitude --}}
                                                         @if (!empty($day['moon_data']['LA']))
-                                                            <span>🧭 <strong>Lat:</strong> {{ number_format($day['moon_data']['LA'], 1) }}°</span>
+                                                            <small>🧭 Lat: {{ number_format($day['moon_data']['LA'], 1) }}°</small><br>
                                                         @endif
 
                                                         {{-- Longitude --}}
                                                         @if (!empty($day['moon_data']['LO']))
-                                                            <span>📐 <strong>Long:</strong> {{ number_format($day['moon_data']['LO'], 1) }}°</span>
+                                                            <small>📐 Long: {{ number_format($day['moon_data']['LO'], 1) }}°</small>
                                                         @endif
 
                                                     </div>
                                                 @endif
-
-
-                                                <span class="gregorian-date d-block small text-muted">{{ $day['gregorian_date'] }}</span>
-                                                <span class="date-info d-block">Julian Day {{ $day['julian_day'] }}</span>
-
+                                                <hr>
+                                                <small><span class="gregorian-date" data-date="{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('Y-m-d') }}">Gregorian Date<br>{{ \Carbon\Carbon::parse($day['gregorian_date'])->format('M-j-Y') }}</span></small>
+                                                <span class="date-info">Julian Day {{ $day['julian_day'] }}</span>
+                                                <hr>
                                                 @if(isset($day['solunar_rating']))
-                                                    <div class="mt-2">
+                                                    @php
+                                                        $rating = $day['solunar_rating'];
+                                                    @endphp
+                                                    <div class="my-2">
                                                         <small>Solunar Rating:</small><br>
                                                         @for ($star = 1; $star <= 4; $star++)
-                                                            @if ($day['solunar_rating'] >= $star)
+                                                            @if ($rating >= $star)
                                                                 <i class="bi bi-star-fill text-warning"></i>
-                                                            @elseif ($day['solunar_rating'] >= $star - 0.5)
+                                                            @elseif ($rating >= $star - 0.5)
                                                                 <i class="bi bi-star-half text-warning"></i>
                                                             @else
                                                                 <i class="bi bi-star text-muted"></i>
@@ -153,14 +155,13 @@
                                                         @endfor
                                                     </div>
                                                 @endif
-
-                                                @if ($day['tide_data'])
-                                                    <span class="d-block fw-bold mt-2">🌊 Tides</span>
-                                                    <span class="d-block">High: {{ $day['tide_data']['high_tide_time'] }} ({{ $day['tide_data']['high_tide_level'] }}m)</span>
-                                                    <span class="d-block">Low: {{ $day['tide_data']['low_tide_time'] }} ({{ $day['tide_data']['low_tide_level'] }}m)</span>
+                                                @php $tide = $day['tide_data']; @endphp
+                                                @if ($tide)
+                                                    <hr><span><strong><small>Tides</small></strong></span>
+                                                    <span class="date-info">🌊 High: {{ !empty($tide['high_tide_time']) && $tide['high_tide_time'] !== 'N/A' ? \Carbon\Carbon::parse($tide['high_tide_time'])->format('g:i a') : 'N/A' }} ({{ $tide['high_tide_level'] }}m)</span>
+                                                    <span class="date-info">🌊 Low: {{ !empty($tide['low_tide_time']) && $tide['low_tide_time'] !== 'N/A' ? \Carbon\Carbon::parse($tide['low_tide_time'])->format('g:i a') : 'N/A' }} ({{ $tide['low_tide_level'] }}m)</span>
                                                 @endif
-
-                                                <button class="btn btn-sm btn-light mt-2 border"
+                                                <button class="btn btn-sm btn-light mt-2 border border-dark"
                                                         wire:click="loadMoreData('{{ $day['date'] }}')">
                                                     <i class="bi bi-backpack4 text-primary"></i> More Info
                                                 </button>
