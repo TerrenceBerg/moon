@@ -78,14 +78,14 @@
     <!-- Calendar Content -->
     <div wire:loading.remove>
         <div class="calendar-container container py-4">
-            <h1 class="text-center text-primary mb-4">📅 13-Month Calendar</h1>
+            <h1 class="text-center text-dark mb-4">📅 13-Month Calendar</h1>
 
             @foreach ($calendarData as $year => $data)
                 <div class="accordion-item mb-4 border p-3 rounded shadow-sm">
                     <div class="row">
                         @foreach ($data['months'] as $index => $month)
                             <div class="calendar-month col-lg-12 mt-4" id="month-{{ $month['name'] }}">
-                                <h5 class="text-center bg-primary text-white p-2 rounded">{{ $month['name'] }}</h5>
+                                <h5 class="text-center bg-primary text-black p-2 rounded">{{ $month['name'] }}</h5>
                                 <div class="calendar-grid d-grid gap-1" style="grid-template-columns: repeat(7, 1fr);">
                                     @foreach(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)
                                         <div class="day-header fw-bold text-center">{{ $day }}</div>
@@ -190,7 +190,7 @@
         <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0,0,0,0.5);">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-md-down" role="document">
                 <div class="modal-content border-0 shadow-lg rounded-4">
-                    <div class="modal-header text-white" style="background: linear-gradient(to right, #1e3c72, #2a5298);">
+                    <div class="modal-header text-black" style="background: linear-gradient(to right, #1e3c72, #2a5298);">
                         <h5 class="modal-title">🌙 Astronomical Data for {{ $selectedDate }}</h5>
                         <button type="button" class="btn-close" wire:click.prevent="closeModal"></button>
                     </div>
