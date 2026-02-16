@@ -247,4 +247,49 @@
             </div>
         </div>
     @endif
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            load_view();
+
+            function initializeSelect2() {
+                const $stationSelect = $('#stationSelect');
+                if ($stationSelect.length) {
+                    $stationSelect.select2();
+
+                    $stationSelect.off('change').on('change', function () {
+                        const selectedStation = parseInt($(this).val(), 10);
+                        if (!isNaN(selectedStation)) {
+                            $('#loader').show();
+                            Livewire.dispatch('updateStation', { stationId: selectedStation });
+                            console.log("Livewire Event Dispatched:", selectedStation);
+                        }
+                    });
+                }
+            }
+
+            initializeSelect2();
+
+            Livewire.on('preserve-scroll', () => {
+                load_view();
+            });
+
+            Livewire.hook('message.processed', () => {
+                initializeSelect2(); // Re-initialize after Livewire DOM changes
+                $('#loader').hide();
+            });
+        });
+
+        function load_view() {
+
+            setTimeout(() => {
+                const todayElement = document.querySelector('.calendar-day[style*="background-color: lightgreen"]');
+                if (todayElement) {
+                    todayElement.scrollIntoView({behavior: 'smooth', block: 'center'});
+                }
+            }, 500);
+        }
+    </script>
 </div>
