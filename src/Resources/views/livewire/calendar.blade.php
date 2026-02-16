@@ -98,7 +98,7 @@
 
                                             <!-- Desktop View (Hides on Mobile) -->
                                             <div class="d-none d-md-block">
-                                                <span class="date-infoh">{{ $month['name'] }} Day {{++$i}}</span>
+                                                <span class="date-infoh">{{ $month['name'] }} Day {{$i+1}}</span>
                                                 <hr>
                                                 <span class="date-info d-block">{{ $day['moon_phase'] }}</span>
 
