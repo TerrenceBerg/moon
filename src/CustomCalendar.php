@@ -18,7 +18,7 @@ class CustomCalendar
 
     public function __construct($year = null, $stationId = null)
     {
-        $this->year = $year ?? Carbon::now()->year;
+        $this->year = $year ?? Carbon::now()->subYear()->year;
         $this->stationId = $stationId;
         if (isset($stationId)) {
             $this->selectedStation = NOAAStation::find($this->stationId);
