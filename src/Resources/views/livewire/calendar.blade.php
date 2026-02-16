@@ -190,7 +190,7 @@
         <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0,0,0,0.5);">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-md-down" role="document">
                 <div class="modal-content border-0 shadow-lg rounded-4">
-                    <div class="modal-header text-black" style="background: linear-gradient(to right, #1e3c72, #2a5298);">
+                    <div class="modal-header text-white" style="background: linear-gradient(to right, #1e3c72, #2a5298);">
                         <h5 class="modal-title">🌙 Astronomical Data for {{ $selectedDate }}</h5>
                         <button type="button" class="btn-close" wire:click.prevent="closeModal"></button>
                     </div>
