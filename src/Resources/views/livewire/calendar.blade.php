@@ -82,7 +82,7 @@
 
             @foreach ($calendarData as $year => $data)
                 <div class="accordion-item mb-4 border p-3 rounded shadow-sm">
-                    <h2 class="text-center text-dark">Year {{ $year }}</h2>
+{{--                    <h2 class="text-center text-dark">Year {{ $year }}</h2>--}}
                     <div class="row">
                         @foreach ($data['months'] as $index => $month)
                             <div class="calendar-month col-lg-12 mt-4" id="month-{{ $month['name'] }}">
