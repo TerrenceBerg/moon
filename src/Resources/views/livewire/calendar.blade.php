@@ -193,7 +193,7 @@
                 <div class="modal-content border-0 shadow-lg rounded-4">
                     <div class="modal-header text-white" style="background: linear-gradient(to right, #1e3c72, #2a5298);">
                         <h5 class="modal-title">🌙 Astronomical Data for {{ $selectedDate }}</h5>
-                        <button type="button" class="btn-close" wire:click.prevent="closeModal"></button>
+                        <button type="button" class="btn-close text-white" wire:click.prevent="closeModal"></button>
                     </div>
                     <div class="modal-body p-4">
                         @if($solunarData)
