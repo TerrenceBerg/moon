@@ -28,7 +28,7 @@ class CustomCalendar
     public function generateCalendar($year = null, $stationId = null)
     {
         ini_set('max_execution_time', 300); // Reduce to a sensible value if caching is in place
-        $currentYear = $year ?? Carbon::now()->year;
+        $currentYear = $year ?? Carbon::now()->subYear()->year;
         $stationId = $stationId ?? $this->stationId;
         $station = NOAAStation::where('id', $stationId)->firstOrFail();
         $yearRange = [$currentYear];
